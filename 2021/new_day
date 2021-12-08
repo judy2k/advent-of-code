@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -o pipefail
+set -o errtrace
+set -o nounset
+set -o errexit
+
+main() {
+    day=$1;
+    shift 1
+
+    printf -v dir "day_%02d" $day
+    
+    if test -d "$dir"; then
+        error_exit "Directory $dir exists already!"
+    else
+        mkdir -p "$dir/python"
+        cp template.py "$dir/python/part1.py"
+        cp template.py "$dir/python/part2.py"
+        touch "$dir/sample.txt"
+        touch "$dir/input.txt"
+    fi
+}
+
+error_exit() {
+    echo "${1:-"Unknown error"}" 1>&2
+    exit 1
+}
+
+main $@
