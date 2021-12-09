@@ -2,14 +2,50 @@
 
 import argparse
 import logging
+import re
 import sys
+
+from collections import Counter
+from itertools import chain, takewhile
 
 
 def solve(datafile):
-    for line in datafile:
-        pass
+    lines = list(filter(Line.horv, (parse_line(line) for line in datafile)))
+    counts = Counter(chain(*(line.pixels() for line in lines)))
+    return len(list(takewhile(lambda kv: kv[1] > 1, counts.most_common())))
 
-    return 0
+
+def parse_line(line):
+    if match := re.match(r"(\d+),(\d+) -> (\d+),(\d+)", line):
+        return Line(
+            int(match.group(1)),
+            int(match.group(2)),
+            int(match.group(3)),
+            int(match.group(4)),
+        )
+
+
+class Line:
+    def __init__(self, x1, y1, x2, y2):
+        self.x1, self.y1 = min((x1, y1), (x2, y2))
+        self.x2, self.y2 = max((x1, y1), (x2, y2))
+        self.dx = self.x2 - self.x1
+        self.dy = self.y2 - self.y1
+
+    def horv(self):
+        return self.dx == 0 or self.dy == 0
+
+    def pixels(self):
+        if self.dx == 0:
+            return [
+                (self.x1, y)
+                for y in range(min(self.y1, self.y2), max(self.y1, self.y2) + 1)
+            ]
+        else:
+            return [(x, self.y1) for x in range(self.x1, self.x2 + 1)]
+
+    def __repr__(self):
+        return f"<Line {self.x1},{self.y1} -> {self.x2},{self.y2}>"
 
 
 def main(argv=sys.argv[1:]):
@@ -26,7 +62,7 @@ def main(argv=sys.argv[1:]):
 
 
 def test_sample():
-    assert solve(open("../sample.txt")) == TODO
+    assert solve(open("../sample.txt")) == 5
 
 
 if __name__ == "__main__":

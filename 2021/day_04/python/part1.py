@@ -30,12 +30,6 @@ class Grid:
         for col_index in range(self.width):
             yield self.col(col_index)
 
-    # def positive_diagonal(self):
-    #     return [self.get(i, i) for i in range(self.width)]
-
-    # def negative_diagonal(self):
-    #     return [self.get(i, self.height - (i + 1)) for i in range(self.width)]
-
     def lines(self):
         return chain(
             self.rows(),
