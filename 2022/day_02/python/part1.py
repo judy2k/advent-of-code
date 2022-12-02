@@ -1,52 +1,44 @@
 #!/usr/bin/env python3
 
 import argparse
+from functools import lru_cache
 import logging
 from logging import debug, info, warn
 import sys
 
 
 class Shape:
-    shapes = None
+    lookup = {}
+    shapes = []
 
     def __init__(self, name, letters, score):
         self.name = name
-        self.letters = set(list(letters))
-        self.beats = None
         self.score = score
+        for l in letters:
+            self.lookup[l] = self
+        self.shapes.append(self)
+        self.beats_index = len(self.shapes)
 
-    @classmethod
-    def from_letter(cls, letter):
-        for shape in cls.shapes:
-            if letter in shape.letters:
-                return shape
+    @property
+    @lru_cache
+    def beats(self):
+        return self.shapes[self.beats_index % len(self.shapes)]
 
     def __repr__(self):
         return f"Shape({self.name})"
 
 
 ROCK = Shape("rock", "AX", 1)
-PAPER = Shape("paper", "BY", 2)
 SCISSORS = Shape("scissors", "CZ", 3)
-
-ROCK.beats = SCISSORS
-SCISSORS.beats = PAPER
-PAPER.beats = ROCK
-
-Shape.shapes = [ROCK, PAPER, SCISSORS]
+PAPER = Shape("paper", "BY", 2)
 
 
 def score(theirs, mine):
-    if mine.beats is theirs:
-        return mine.score + 6
-    elif mine is theirs:
-        return mine.score * 2
-    else:
-        return mine.score
+    return mine.score + (6 if mine.beats is theirs else mine.score if mine is theirs else 0)
 
 
 def solve(datafile):
-    return sum(score(*[Shape.from_letter(l) for l in line.split()]) for line in datafile)
+    return sum(score(*[Shape.lookup[l] for l in line.split()]) for line in datafile)
 
 
 def main(argv=sys.argv[1:]):
