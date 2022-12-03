@@ -6,39 +6,39 @@ import logging
 from logging import debug, info, warn
 import sys
 
+from enum import Enum
 
-class Shape:
-    lookup = {}
-    shapes = []
 
-    def __init__(self, name, letters, score):
-        self.name = name
+class Shape(Enum):
+    ROCK = ("AX", 1)
+    SCISSORS = ("CZ", 3)
+    PAPER = ("BY", 2)
+
+    def __init__(self, letters, score):
         self.score = score
-        for l in letters:
-            self.lookup[l] = self
-        self.shapes.append(self)
-        self.beats_index = len(self.shapes)
+        self.letters = letters
 
     @property
     @lru_cache
     def beats(self):
-        return self.shapes[self.beats_index % len(self.shapes)]
+        shapes = list(self.__class__)
+        return shapes[(shapes.index(self) + 1) % len(shapes)]
 
-    def __repr__(self):
-        return f"Shape({self.name})"
-
-
-ROCK = Shape("rock", "AX", 1)
-SCISSORS = Shape("scissors", "CZ", 3)
-PAPER = Shape("paper", "BY", 2)
-
-
-def score(theirs, mine):
-    return mine.score + (6 if mine.beats is theirs else mine.score if mine is theirs else 0)
+    @classmethod
+    def lookup(cls, letter):
+        if getattr(cls, "__lookup", None) is None:
+            cls.__lookup = {l: s for s in cls for l in s.letters}
+        return cls.__lookup[letter]
 
 
-def solve(datafile):
-    return sum(score(*[Shape.lookup[l] for l in line.split()]) for line in datafile)
+def score(theirs: Shape, mine: Shape) -> int:
+    s = mine.score + (6 if mine.beats is theirs else 3 if mine is theirs else 0)
+    info(f"{mine}, {theirs}: {s}")
+    return s
+
+
+def solve(datafile) -> int:
+    return sum(score(*[Shape.lookup(l) for l in line.split()]) for line in datafile)
 
 
 def main(argv=sys.argv[1:]):
@@ -54,6 +54,18 @@ def main(argv=sys.argv[1:]):
 
 def test_sample():
     assert solve(open("../sample.txt")) == 15
+
+
+# def test_draws():
+#     assert score(Shape.ROCK, Shape.ROCK) == 2
+#     assert score(Shape.PAPER, Shape.PAPER) == 4
+#     assert score(Shape.SCISSORS, Shape.SCISSORS) == 6
+
+
+# def test_wins():
+#     assert score(Shape.ROCK, Shape.PAPER) == 2
+#     assert score(Shape.PAPER, Shape.SCISSORS) == 4
+#     assert score(Shape.SCISSORS, Shape.ROCK) == 6
 
 
 if __name__ == "__main__":
