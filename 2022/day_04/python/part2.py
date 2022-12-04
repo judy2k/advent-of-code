@@ -5,14 +5,14 @@ import logging
 from logging import debug, info, warn
 import sys
 
+import re
+
 
 def parse_ranges(line):
-    return [tuple(int(s) for s in rs.split("-")) for rs in line.strip().split(",")]
+    return [int(s) for s in re.split(r"[-,]", line)]
 
 
-def overlaps(ab, cd):
-    a, b = ab
-    c, d = cd
+def overlaps(a, b, c, d):
     return (a <= c and b >= c) or (c <= a and d >= a)
 
 
@@ -32,10 +32,10 @@ def main(argv=sys.argv[1:]):
 
 
 def test_sample():
-    assert parse_ranges("2-4,6-8\n") == [(2, 4), (6, 8)]
-    assert overlaps((2, 8), (3, 7)) == True
-    assert overlaps((6, 6), (4, 6)) == True
-    assert overlaps((2, 6), (4, 8)) == True
+    assert parse_ranges("2-4,6-8\n") == [2, 4, 6, 8]
+    assert overlaps(2, 8, 3, 7) == True
+    assert overlaps(6, 6, 4, 6) == True
+    assert overlaps(2, 6, 4, 8) == True
     assert list(overlaps(*parse_ranges(line)) for line in open("../sample.txt")) == [
         False,
         False,
