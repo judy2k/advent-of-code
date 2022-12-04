@@ -38,17 +38,5 @@ def test_sample():
     assert solve(open("../sample.txt")) == 12
 
 
-# def test_draws():
-#     assert score(Shape.ROCK, Shape.ROCK) == 2
-#     assert score(Shape.PAPER, Shape.PAPER) == 4
-#     assert score(Shape.SCISSORS, Shape.SCISSORS) == 6
-
-
-# def test_wins():
-#     assert score(Shape.ROCK, Shape.PAPER) == 2
-#     assert score(Shape.PAPER, Shape.SCISSORS) == 4
-#     assert score(Shape.SCISSORS, Shape.ROCK) == 6
-
-
 if __name__ == "__main__":
     main()
