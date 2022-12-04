@@ -1,44 +1,26 @@
 #!/usr/bin/env python3
 
 import argparse
-from functools import lru_cache
 import logging
 from logging import debug, info, warn
 import sys
 
-from enum import Enum
 
-
-class Shape(Enum):
-    ROCK = ("AX", 1)
-    SCISSORS = ("CZ", 3)
-    PAPER = ("BY", 2)
-
-    def __init__(self, letters, score):
-        self.score = score
-        self.letters = letters
-
-    @property
-    @lru_cache
-    def beats(self):
-        shapes = list(self.__class__)
-        return shapes[(shapes.index(self) + 1) % len(shapes)]
-
-    @classmethod
-    def lookup(cls, letter):
-        if getattr(cls, "__lookup", None) is None:
-            cls.__lookup = {l: s for s in cls for l in s.letters}
-        return cls.__lookup[letter]
-
-
-def score(theirs: Shape, mine: Shape) -> int:
-    s = mine.score + (6 if mine.beats is theirs else 3 if mine is theirs else 0)
-    info(f"{mine}, {theirs}: {s}")
-    return s
+SCORES = {
+    "A X": 1 + 3,
+    "A Y": 2 + 6,
+    "A Z": 3 + 0,
+    "B X": 1 + 0,
+    "B Y": 2 + 3,
+    "B Z": 3 + 6,
+    "C X": 1 + 6,
+    "C Y": 2 + 0,
+    "C Z": 3 + 3,
+}
 
 
 def solve(datafile) -> int:
-    return sum(score(*[Shape.lookup(l) for l in line.split()]) for line in datafile)
+    return sum(SCORES[line.strip()] for line in datafile)
 
 
 def main(argv=sys.argv[1:]):
