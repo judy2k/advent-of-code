@@ -13,7 +13,7 @@ def parse_ranges(line):
 
 
 def contains(a, b, c, d):
-    return (a <= c and b >= d) or (c <= a and b <= d)
+    return (a <= c and d <= b) or (c <= a and b <= d)
 
 
 def solve(datafile):

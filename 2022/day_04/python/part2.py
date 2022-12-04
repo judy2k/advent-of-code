@@ -13,7 +13,7 @@ def parse_ranges(line):
 
 
 def overlaps(a, b, c, d):
-    return (a <= c and b >= c) or (c <= a and d >= a)
+    return (a <= c <= b) or (c <= a <= d)
 
 
 def solve(datafile):
