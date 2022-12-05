@@ -13,16 +13,12 @@ Move = namedtuple("Move", ["count", "source", "to"])
 
 
 def parse_stacks(datafile):
-    stack_rows = []
-    for line in datafile:
-        if line.startswith(" 1"):
-            datafile.readline()
-            break
-        stack_rows.append(line.strip("\n")[1::4])
-
-    stacks = [list(takewhile(lambda s: s != " ", stack)) for stack in list(zip(*reversed(stack_rows)))]
-
-    return stacks
+    return [
+        list(takewhile(lambda s: s != " ", stack))
+        for stack in zip(
+            *reversed(list(takewhile(lambda r: r[0] != "1", (line.strip("\n")[1::4] for line in datafile))))
+        )
+    ]
 
 
 def parse_moves(datafile):
