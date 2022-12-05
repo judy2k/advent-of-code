@@ -9,7 +9,6 @@ from collections import namedtuple
 from itertools import takewhile
 import re
 
-
 Move = namedtuple("Move", ["count", "source", "to"])
 
 
@@ -34,12 +33,16 @@ def parse_moves(datafile):
 
 def solve(datafile):
     stacks = parse_stacks(datafile)
+    moves = list(parse_moves(datafile))
 
-    for move in parse_moves(datafile):
-        for _ in range(move.count):
-            stacks[move.to - 1].append(stacks[move.source - 1].pop())
+    for move in moves:
+        info(move)
+        debug(f"From: {stacks[move.source - 1]}, To: {stacks[move.to - 1]}")
+        stacks[move.to - 1].extend(stacks[move.source - 1][-move.count :])
+        del stacks[move.source - 1][-move.count :]
+        debug(f"After:{stacks[move.source - 1]}, {stacks[move.to - 1]}")
 
-    return "".join(stack[-1] for stack in stacks)
+    return "".join(stack[-1] if stack else "" for stack in stacks)
 
 
 def main(argv=sys.argv[1:]):
@@ -54,7 +57,7 @@ def main(argv=sys.argv[1:]):
 
 
 def test_sample():
-    assert solve(open("../sample.txt")) == "CMZ"
+    assert solve(open("../sample.txt")) == "MCD"
 
 
 def test_parse_stacks():
