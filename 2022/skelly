@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser
+from datetime import date
+from functools import partial
+from pathlib import Path
+import shutil
+import sys
+
+debug = partial(print, file=sys.stderr)
+
+
+def fail(*args, exit_code=1, **kwargs):
+    debug(*args, **kwargs)
+    sys.exit(exit_code)
+
+
+def parse_args(args):
+    ap = ArgumentParser()
+    ap.add_argument("day", nargs="?", type=int)
+
+    return ap.parse_args(args)
+
+
+def main(args=sys.argv[1:]):
+    a = parse_args(args)
+    today = date.today().day if a.day is None else a.day
+
+    here = Path(__file__).parent
+    dir_name = f"day_{today:02d}"
+    target_dir = here / dir_name
+
+    if target_dir.exists():
+        fail(f"{target_dir} already exists! I ain't touching that.")
+
+    target_dir.mkdir()
+    (target_dir / "python").mkdir()
+    shutil.copy(here / "template.py", target_dir / "python" / "part1.py")
+    open(target_dir / "sample.txt", "a").close()
+    open(target_dir / "input.txt", "a").close()
+
+
+if __name__ == "__main__":
+    main()
