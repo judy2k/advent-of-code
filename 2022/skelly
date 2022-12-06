@@ -33,11 +33,7 @@ def main(args=sys.argv[1:]):
     if target_dir.exists():
         fail(f"{target_dir} already exists! I ain't touching that.")
 
-    target_dir.mkdir()
-    (target_dir / "python").mkdir()
-    shutil.copy(here / "template.py", target_dir / "python" / "part1.py")
-    open(target_dir / "sample.txt", "a").close()
-    open(target_dir / "input.txt", "a").close()
+    shutil.copytree(here / "template", target_dir)
 
 
 if __name__ == "__main__":
