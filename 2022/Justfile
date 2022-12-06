@@ -1,0 +1,7 @@
+# Get ready to start today's problem.
+start day='':
+    ./skelly {{day}}
+
+# Clean up generated files.
+clean:
+    fd -HI '.pytest_cache|__pycache__' | xargs rm -rf
