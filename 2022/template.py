@@ -20,12 +20,18 @@ def main(argv=sys.argv[1:]):
 
     args = ap.parse_args(argv)
 
-    logging.basicConfig(format="%(message)s", level=logging.DEBUG if args.verbose else logging.WARNING)
+    logging.basicConfig(
+        format="%(message)s",
+        level=logging.DEBUG if args.verbose else logging.WARNING,
+    )
     print(solve(args.datafile))
 
 
 def test_sample():
-    assert solve(open("../sample.txt")) == TODO
+    from pathlib import Path
+
+    sample_file = Path(__file__).parent.parent.joinpath("sample.txt").open()
+    assert solve(sample_file) == -1
 
 
 if __name__ == "__main__":
