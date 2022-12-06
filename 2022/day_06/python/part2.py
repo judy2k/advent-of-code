@@ -5,9 +5,7 @@ import logging
 from logging import debug, info, warn
 import sys
 
-import pytest
-
-from itertools import *
+from itertools import islice, tee
 
 
 def solve(datafile, n_len):
@@ -36,11 +34,11 @@ def main(argv=sys.argv[1:]):
         format="%(message)s",
         level=logging.DEBUG if args.verbose else logging.WARNING,
     )
-    print(solve(args.datafile, 4))
+    print(solve(args.datafile, 14))
 
 
 def test_sample():
-    assert solve(open("../sample.txt"), 4) == 7
+    assert solve(open("../sample.txt"), 14) == 19
 
 
 if __name__ == "__main__":
