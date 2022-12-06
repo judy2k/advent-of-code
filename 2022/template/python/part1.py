@@ -31,7 +31,7 @@ def test_sample():
     from pathlib import Path
 
     sample_file = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    assert solve(sample_file) == -1
+    assert solve(sample_file) == TODO
 
 
 if __name__ == "__main__":
