@@ -17,17 +17,16 @@ def fail(*args, exit_code=1, **kwargs):
 
 def parse_args(args):
     ap = ArgumentParser()
-    ap.add_argument("day", nargs="?", type=int)
+    ap.add_argument("day", default=date.today().day, nargs="?", type=int)
 
     return ap.parse_args(args)
 
 
 def main(args=sys.argv[1:]):
     a = parse_args(args)
-    today = date.today().day if a.day is None else a.day
 
     here = Path(__file__).parent
-    dir_name = f"day_{today:02d}"
+    dir_name = f"day_{a.day:02d}"
     target_dir = here / dir_name
 
     if target_dir.exists():
