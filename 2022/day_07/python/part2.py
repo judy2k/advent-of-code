@@ -6,50 +6,29 @@ from logging import debug, info, warn
 import sys
 
 import re
-from collections import namedtuple
-
-Directory = namedtuple("Directory", ["files", "dirs"])
 
 
-def size(files, dirs) -> int:
-    return sum(f[1] for f in files) + sum(size(*d) for _, d in dirs.items())
-
-
-def parse_datafile(datafile) -> Directory:
+def parse_datafile(datafile):
     directories = []
     stack = []
 
     for line in datafile:
-        tokens = re.match(r"((?:\$ )?\w+)(?: (.*)?)?", line.strip()).groups()
-        if tokens[0] == "$ cd":
-            if tokens[1] == "..":
-                stack.pop()
-            else:
-                stack.append(Directory([], {}))
-                if len(stack) > 1:
-                    stack[-2].dirs[tokens[1]] = stack[-1]
-                directories.append(stack[-1])
-        elif tokens[0] in {"dir", "$ ls"}:
-            pass
-        else:
-            stack[-1].files.append((tokens[1], int(tokens[0])))
+        if line.strip() == "$ cd ..":
+            directories[stack[-2]] += directories[stack.pop()]
+        elif match := re.match(r"\$ cd (.*)", line.strip()):
+            stack.append(len(directories))
+            directories.append(0)
+        elif match := re.match(r"(?P<size>\d+) (?:\w+)", line.strip()):
+            directories[stack[-1]] += int(match.group("size"))
+    while len(stack) > 1:
+        directories[stack[-2]] += directories[stack.pop()]
 
     return directories
 
 
 def solve(datafile):
     ds = parse_datafile(datafile)
-
-    return size(
-        *sorted(
-            [
-                d
-                for d in ds
-                if size(*d) >= 30_000_000 - (70_000_000 - size(*ds[0]))
-            ],
-            key=lambda d: size(*d),
-        )[0]
-    )
+    return sorted((d for d in ds if d >= 30_000_000 - (70_000_000 - ds[0])))[0]
 
 
 def main(argv=sys.argv[1:]):

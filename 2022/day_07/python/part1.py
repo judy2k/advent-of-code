@@ -5,45 +5,29 @@ import logging
 from logging import debug, info, warn
 import sys
 
-from collections import namedtuple
-from functools import lru_cache
-
-Directory = namedtuple("Directory", ["files", "dirs"])
+import re
 
 
-def size(files, dirs) -> int:
-    return sum(f[1] for f in files) + sum(size(*d) for _, d in dirs.items())
-
-
-def parse_datafile(datafile) -> Directory:
+def parse_datafile(datafile):
     directories = []
     stack = []
 
     for line in datafile:
-        line = line.strip().split(" ")
-        if line[0] == "$":
-            command = line[1:]
-            if command[0] == "cd":
-                if command[1] == "..":
-                    stack.pop()
-                else:
-                    stack.append(Directory([], {}))
-                    if len(stack) > 1:
-                        stack[-2].dirs[command[1]] = stack[-1]
-                    directories.append(stack[-1])
-        else:
-            if line[0] == "dir":
-                pass
-            else:
-                stack[-1].files.append((line[1], int(line[0])))
+        if line.strip() == "$ cd ..":
+            directories[stack[-2]] += directories[stack.pop()]
+        elif match := re.match(r"\$ cd (.*)", line.strip()):
+            stack.append(len(directories))
+            directories.append(0)
+        elif match := re.match(r"(?P<size>\d+) (?:\w+)", line.strip()):
+            directories[stack[-1]] += int(match.group("size"))
+    while len(stack) > 1:
+        directories[stack[-2]] += directories[stack.pop()]
 
     return directories
 
 
 def solve(datafile):
-    result = sum(
-        size(*d) for d in parse_datafile(datafile) if size(*d) <= 100000
-    )
+    result = sum(filter(lambda n: n <= 100000, parse_datafile(datafile)))
     return result
 
 
@@ -73,6 +57,13 @@ def test_input():
 
     input_file = Path(__file__).parent.parent.joinpath("input.txt").open()
     assert solve(input_file) == 1_423_358
+
+
+def test_sample_size():
+    from pathlib import Path
+
+    input_file = Path(__file__).parent.parent.joinpath("sample.txt").open()
+    assert parse_datafile(input_file)[0] == 48381165
 
 
 if __name__ == "__main__":
