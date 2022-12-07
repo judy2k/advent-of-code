@@ -4,19 +4,15 @@ import argparse
 import logging
 from logging import debug, info, warn
 import sys
+
+from collections import namedtuple
 from functools import lru_cache
 
+Directory = namedtuple("Directory", ["files", "dirs"])
 
-class Directory:
-    def __init__(self):
-        self.files = []
-        self.dirs = {}
 
-    def size(self) -> int:
-        result = sum(f[1] for f in self.files) + sum(
-            d.size() for _, d in self.dirs.items()
-        )
-        return result
+def size(files, dirs) -> int:
+    return sum(f[1] for f in files) + sum(size(*d) for _, d in dirs.items())
 
 
 def parse_datafile(datafile) -> Directory:
@@ -31,7 +27,7 @@ def parse_datafile(datafile) -> Directory:
                 if command[1] == "..":
                     stack.pop()
                 else:
-                    stack.append(Directory())
+                    stack.append(Directory([], {}))
                     if len(stack) > 1:
                         stack[-2].dirs[command[1]] = stack[-1]
                     directories.append(stack[-1])
@@ -45,8 +41,9 @@ def parse_datafile(datafile) -> Directory:
 
 
 def solve(datafile):
-    ds = parse_datafile(datafile)
-    result = sum(d.size() for d in ds if d.size() <= 100000)
+    result = sum(
+        size(*d) for d in parse_datafile(datafile) if size(*d) <= 100000
+    )
     return result
 
 
