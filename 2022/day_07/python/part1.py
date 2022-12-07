@@ -4,62 +4,49 @@ import argparse
 import logging
 from logging import debug, info, warn
 import sys
-from typing import Iterable
+from functools import lru_cache
 
 
 class Directory:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
         self.files = []
         self.dirs = {}
 
-    def subdirectories(self) -> Iterable["Directory"]:
-        result = list(self.dirs.values())
-        for d in self.dirs.values():
-            result.extend(d.subdirectories())
-        return result
-
-    def file_total(self) -> int:
-        return sum(f[1] for f in self.files)
-
     def size(self) -> int:
-        result = self.file_total() + sum(d.size() for _, d in self.dirs.items())
+        result = sum(f[1] for f in self.files) + sum(
+            d.size() for _, d in self.dirs.items()
+        )
         return result
-
-    def __repr__(self):
-        return f"Directory({self.name})"
 
 
 def parse_datafile(datafile) -> Directory:
-    root = Directory("/")
-    stack = [root]
+    directories = []
+    stack = []
 
     for line in datafile:
         line = line.strip().split(" ")
         if line[0] == "$":
             command = line[1:]
-            if command[0] == "ls":
-                continue
-            else:
-                if command[0] == "cd":
-                    if command[1] == "..":
-                        stack.pop()
-                    elif command[1] == "/":
-                        continue
-                    else:
-                        stack.append(stack[-1].dirs[command[1]])
+            if command[0] == "cd":
+                if command[1] == "..":
+                    stack.pop()
+                else:
+                    stack.append(Directory())
+                    if len(stack) > 1:
+                        stack[-2].dirs[command[1]] = stack[-1]
+                    directories.append(stack[-1])
         else:
             if line[0] == "dir":
-                stack[-1].dirs[line[1]] = Directory(line[1])
+                pass
             else:
                 stack[-1].files.append((line[1], int(line[0])))
 
-    return stack[0]
+    return directories
 
 
 def solve(datafile):
-    root = parse_datafile(datafile)
-    result = sum(d.size() for d in root.subdirectories() if d.size() <= 100000)
+    ds = parse_datafile(datafile)
+    result = sum(d.size() for d in ds if d.size() <= 100000)
     return result
 
 
@@ -84,35 +71,11 @@ def test_sample():
     assert solve(sample_file) == 95_437
 
 
-def test_sample_parse():
+def test_input():
     from pathlib import Path
 
-    sample_file = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    root = parse_datafile(sample_file)
-    a = root.dirs["a"]
-    e = a.dirs["e"]
-    d = root.dirs["d"]
-
-    assert d.dirs == {}
-    assert e.files == [("i", 584)]
-    assert e.size() == 584
-    assert a.size() == 94853
-    assert d.size() == 24933642
-
-    assert root.size() == 48381165
-
-
-def test_subdirectories():
-    a = Directory("a")
-    b = Directory("b")
-    c = Directory("c")
-    d = Directory("d")
-    a.dirs["b"] = b
-    a.dirs["d"] = d
-    b.dirs["c"] = c
-
-    print(a.subdirectories())
-    assert a.subdirectories() == [b, d, c]
+    input_file = Path(__file__).parent.parent.joinpath("input.txt").open()
+    assert solve(input_file) == 1_423_358
 
 
 if __name__ == "__main__":
