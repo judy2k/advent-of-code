@@ -9,26 +9,24 @@ import re
 
 
 def parse_datafile(datafile):
-    directories = []
-    stack = []
+    size = 0
+    subdirs = []
 
-    for line in datafile:
-        if line.strip() == "$ cd ..":
-            directories[stack[-2]] += directories[stack.pop()]
-        elif match := re.match(r"\$ cd (.*)", line.strip()):
-            stack.append(len(directories))
-            directories.append(0)
-        elif match := re.match(r"(?P<size>\d+) (?:\w+)", line.strip()):
-            directories[stack[-1]] += int(match.group("size"))
-    while len(stack) > 1:
-        directories[stack[-2]] += directories[stack.pop()]
+    for line in (l.strip() for l in datafile):
+        if line == "$ cd ..":
+            break
+        elif line.startswith(r"$ cd"):
+            ds = parse_datafile(datafile)
+            size += ds[0]
+            subdirs.extend(ds)
+        elif match := re.match(r"\d+", line):
+            size += int(match.group(0))
 
-    return directories
+    return [size] + subdirs
 
 
 def solve(datafile):
-    result = sum(filter(lambda n: n <= 100000, parse_datafile(datafile)))
-    return result
+    return sum(n for n in parse_datafile(datafile) if n <= 100_000)
 
 
 def main(argv=sys.argv[1:]):
@@ -63,7 +61,7 @@ def test_sample_size():
     from pathlib import Path
 
     input_file = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    assert parse_datafile(input_file)[0] == 48381165
+    assert parse_datafile(input_file)[0] == 48_381_165
 
 
 if __name__ == "__main__":

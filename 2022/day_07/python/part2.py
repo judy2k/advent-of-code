@@ -9,21 +9,20 @@ import re
 
 
 def parse_datafile(datafile):
-    directories = []
-    stack = []
+    size = 0
+    subdirs = []
 
-    for line in datafile:
-        if line.strip() == "$ cd ..":
-            directories[stack[-2]] += directories[stack.pop()]
-        elif match := re.match(r"\$ cd (.*)", line.strip()):
-            stack.append(len(directories))
-            directories.append(0)
-        elif match := re.match(r"(?P<size>\d+) (?:\w+)", line.strip()):
-            directories[stack[-1]] += int(match.group("size"))
-    while len(stack) > 1:
-        directories[stack[-2]] += directories[stack.pop()]
+    for line in (l.strip() for l in datafile):
+        if line == "$ cd ..":
+            break
+        elif line.startswith(r"$ cd"):
+            ds = parse_datafile(datafile)
+            size += ds[0]
+            subdirs.extend(ds)
+        elif match := re.match(r"\d+", line):
+            size += int(match.group(0))
 
-    return directories
+    return [size] + subdirs
 
 
 def solve(datafile):
