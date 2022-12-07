@@ -45,14 +45,11 @@ def parse_datafile(datafile) -> Directory:
 
 def solve(datafile):
     ds = parse_datafile(datafile)
-    root = ds[0]
-    free_space = 70_000_000 - root.size()
-    required_space = 30_000_000 - free_space
 
-    ds = [d for d in ds if d.size() >= required_space]
-    ds.sort(key=lambda d: d.size())
-
-    return ds[0].size()
+    return sorted(
+        [d for d in ds if d.size() >= 30_000_000 - (70_000_000 - ds[0].size())],
+        key=lambda d: d.size(),
+    )[0].size()
 
 
 def main(argv=sys.argv[1:]):
