@@ -9,20 +9,19 @@ import re
 
 
 def parse_datafile(datafile):
-    size = 0
-    subdirs = []
+    subdirs = [0]
 
     for line in (l.strip() for l in datafile):
         if line == "$ cd ..":
             break
         elif line.startswith(r"$ cd"):
             ds = parse_datafile(datafile)
-            size += ds[0]
+            subdirs[0] += ds[0]
             subdirs.extend(ds)
         elif match := re.match(r"\d+", line):
-            size += int(match.group(0))
+            subdirs[0] += int(match.group(0))
 
-    return [size] + subdirs
+    return subdirs
 
 
 def solve(datafile):
