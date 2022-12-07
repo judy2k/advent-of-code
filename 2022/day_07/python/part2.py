@@ -26,7 +26,7 @@ def parse_datafile(datafile):
 
 def solve(datafile):
     ds = parse_datafile(datafile)
-    return sorted((d for d in ds if d >= 30_000_000 - (70_000_000 - ds[0])))[0]
+    return sorted((d for d in ds if d >= 30_000_000 - 70_000_000 + ds[0]))[0]
 
 
 def main(argv=sys.argv[1:]):
