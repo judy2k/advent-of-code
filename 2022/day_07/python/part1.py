@@ -5,7 +5,6 @@ import logging
 from logging import debug, info, warn
 import sys
 
-from itertools import chain
 import re
 
 
