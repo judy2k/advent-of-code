@@ -6,6 +6,7 @@ from logging import debug, info, warn
 from pathlib import Path
 import sys
 
+from itertools import chain, repeat
 from functools import reduce
 from operator import __or__
 
@@ -15,56 +16,19 @@ def solve_map(map):
     h = len(map)
 
     visibility = [[False] * w for _ in range(h)]
+    lines = chain(
+        [[(x, y) for x in reversed(range(w))] for y in range(h)],
+        [[(x, y) for x in range(w)] for y in range(h)],
+        [[(x, y) for y in reversed(range(h))] for x in range(w)],
+        [[(x, y) for y in range(h)] for x in range(w)],
+    )
 
-    max_height = -1
-
-    def update_visibility(r, c):
-        nonlocal max_height
-        height = map[r][c]
-        if height > max_height:
-            max_height = height
-            visibility[r][c] = True
-
-    def vs(heights):
-        mh = -1
-        for height in heights:
-            if height > mh:
-                mh = height
-                yield True
-            else:
-                yield False
-
-    # left to right
-    for r in range(h):
-        for c, v in zip(
-            range(w),
-            vs([map[r][c] for c in range(w)]),
-        ):
-            visibility[r][c] |= v
-
-    # top to bottom
-    for c in range(w):
-        for r, v in zip(
-            range(h),
-            vs([map[r][c] for r in range(h)]),
-        ):
-            visibility[r][c] |= v
-
-    # right to left
-    for r in range(h):
-        for c, v in zip(
-            reversed(range(w)),
-            vs([map[r][c] for c in reversed(range(w))]),
-        ):
-            visibility[r][c] |= v
-
-    # bottom to top
-    for c in range(w):
-        for r, v in zip(
-            reversed(range(h)),
-            vs([map[r][c] for r in reversed(range(h))]),
-        ):
-            visibility[r][c] |= v
+    for line in lines:
+        max_height = -1
+        for x, y in line:
+            if map[y][x] > max_height:
+                max_height = map[y][x]
+                visibility[y][x] = True
 
     return sum(cell for row in visibility for cell in row)
 
