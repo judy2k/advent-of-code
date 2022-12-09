@@ -17,26 +17,24 @@ def solve_map(map):
 
     visibility = [[False] * w for _ in range(h)]
     lines = chain(
-        [[(x, y) for x in reversed(range(w))] for y in range(h)],
-        [[(x, y) for x in range(w)] for y in range(h)],
-        [[(x, y) for y in reversed(range(h))] for x in range(w)],
-        [[(x, y) for y in range(h)] for x in range(w)],
+        (((x, y, map[y][x]) for x in reversed(range(w))) for y in range(h)),
+        (((x, y, map[y][x]) for x in range(w)) for y in range(h)),
+        (((x, y, map[y][x]) for y in reversed(range(h))) for x in range(w)),
+        (((x, y, map[y][x]) for y in range(h)) for x in range(w)),
     )
 
     for line in lines:
         max_height = -1
-        for x, y in line:
-            if map[y][x] > max_height:
-                max_height = map[y][x]
+        for x, y, height in line:
+            if height > max_height:
+                max_height = height
                 visibility[y][x] = True
 
     return sum(cell for row in visibility for cell in row)
 
 
 def solve(datafile):
-    map = [[int(c) for c in line.strip()] for line in datafile]
-
-    return solve_map(map)
+    return solve_map([[int(c) for c in line.strip()] for line in datafile])
 
 
 def main(argv=sys.argv[1:]):
