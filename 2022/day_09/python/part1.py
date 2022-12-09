@@ -69,8 +69,15 @@ def main(argv=sys.argv[1:]):
 def test_sample():
     from pathlib import Path
 
-    sample_file = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    assert solve(sample_file) == 13
+    datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
+    assert solve(datafile) == 13
+
+
+def test_input():
+    from pathlib import Path
+
+    datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
+    assert solve(datafile) == 6271
 
 
 if __name__ == "__main__":
