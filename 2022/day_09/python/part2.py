@@ -41,13 +41,13 @@ def solve(datafile):
     instructions = parse(datafile)
 
     knots = [(0, 0) for n in range(10)]
-    tlog = [(0, 0)]
+    tlog = {(0, 0)}
     for d, n in instructions:
         while n > 0:
             knots[0] = update_h(knots[0], d)
             for i in range(1, len(knots)):
                 knots[i] = update_trailing_knot(knots[i], knots[i - 1])
-                tlog.append(knots[-1])
+            tlog.add(knots[-1])
             n -= 1
 
     return len(set(tlog))
