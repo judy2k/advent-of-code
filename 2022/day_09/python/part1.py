@@ -28,13 +28,13 @@ def step(a, b):
     return a + max(-1, min(b - a, 1))
 
 
-def update_t(knot, knot_ahead):
-    tx, ty = knot
-    hx, hy = knot_ahead
+def update_t(t, h):
+    tx, ty = t
+    hx, hy = h
 
     if abs(hx - tx) > 1 or abs(hy - ty) > 1:
         return (step(tx, hx), step(ty, hy))
-    return knot
+    return t
 
 
 def solve(datafile):
