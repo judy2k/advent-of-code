@@ -50,7 +50,7 @@ def solve(datafile):
             tlog.add(knots[-1])
             n -= 1
 
-    return len(set(tlog))
+    return len(tlog)
 
 
 def main(argv=sys.argv[1:]):
