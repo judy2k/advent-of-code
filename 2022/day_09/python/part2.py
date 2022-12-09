@@ -32,9 +32,11 @@ def update_trailing_knot(knot, knot_ahead):
     tx, ty = knot
     hx, hy = knot_ahead
 
-    if abs(hx - tx) > 1 or abs(hy - ty) > 1:
-        return (step(tx, hx), step(ty, hy))
-    return knot
+    return (
+        (step(tx, hx), step(ty, hy))
+        if (abs(hx - tx) > 1 or abs(hy - ty) > 1)
+        else knot
+    )
 
 
 def solve(datafile):
