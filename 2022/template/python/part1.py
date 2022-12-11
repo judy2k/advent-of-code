@@ -27,11 +27,17 @@ def main(argv=sys.argv[1:]):
     print(solve(args.datafile))
 
 
-def test_sample():
-    from pathlib import Path
+from pathlib import Path
 
-    sample_file = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    assert solve(sample_file) == TODO
+
+def test_sample():
+    datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
+    assert solve(datafile) == TODO
+
+
+# def test_input():
+#     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
+#     assert solve(datafile) == TODO
 
 
 if __name__ == "__main__":
