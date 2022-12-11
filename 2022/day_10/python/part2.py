@@ -47,11 +47,17 @@ class Machine:
         for _ in self.run():
             yield self.cycle, self.x
 
-    def render(self):
-        pixels = [
-            "\u2588" if ((cycle - 1) % 40 in range(x - 1, x + 2)) else " "
-            for cycle, x in self.xs()
-        ]
+    def render(self, readable=False):
+        if readable:
+            pixels = [
+                "\u2588" if ((cycle - 1) % 40 in range(x - 1, x + 2)) else " "
+                for cycle, x in self.xs()
+            ]
+        else:
+            pixels = [
+                "#" if ((cycle - 1) % 40 in range(x - 1, x + 2)) else "."
+                for cycle, x in self.xs()
+            ]
 
         result = io.StringIO()
 
@@ -62,9 +68,9 @@ class Machine:
         return result.getvalue()
 
 
-def solve(datafile):
+def solve(datafile, readable=False):
     m = Machine(datafile.readlines())
-    return m.render()
+    return m.render(readable)
 
 
 def main(argv=sys.argv[1:]):
@@ -78,7 +84,7 @@ def main(argv=sys.argv[1:]):
         format="%(message)s",
         level=logging.DEBUG if args.verbose else logging.WARNING,
     )
-    print(solve(args.datafile))
+    print(solve(args.datafile, True))
 
 
 from pathlib import Path
