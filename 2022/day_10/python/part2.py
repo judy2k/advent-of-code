@@ -81,7 +81,6 @@ def main(argv=sys.argv[1:]):
     print(solve(args.datafile))
 
 
-import pytest
 from pathlib import Path
 
 

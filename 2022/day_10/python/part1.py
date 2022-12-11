@@ -66,13 +66,10 @@ def main(argv=sys.argv[1:]):
     print(solve(args.datafile))
 
 
-import pytest
 from pathlib import Path
 
 
 def test_sample():
-    from pathlib import Path
-
     datafile = Path(__file__).parent.parent.joinpath("sample1.txt").open()
     m = Machine(datafile.readlines())
     assert list(m.xs()) == [(1, 1), (2, 1), (3, 1), (4, 4), (5, 4)]
