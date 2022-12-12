@@ -106,14 +106,9 @@ def parse_monkeys(datafile) -> List[Monkey]:
 def solve(datafile):
     ms = parse_monkeys(datafile)
     mod = math.prod(m.divisible_by for m in ms)
-    for round in range(10_000):
-        if round % 100 == 0:
-            print(f"Round {round}")
+    for _ in range(10_000):
         for m in ms:
             m.step(ms, mod)
-    for i, m in enumerate(ms):
-        print(f"Monkey {i} inspected items {m.inspected_count} times.")
-
     ms.sort()
     return ms[-2].inspected_count * ms[-1].inspected_count
 
