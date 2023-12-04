@@ -8,46 +8,30 @@ import sys
 import re
 
 
-class Game:
-    def __init__(self, line, id, subsets):
-        self.line = line
-        self.id = int(id)
-        self.subsets = subsets
-        self.totals = combine_subsets(subsets)
-
-    def match(self, superset):
-        result = all(a >= b for (a, b) in zip(superset, self.totals))
-
-        return result
-
-    @classmethod
-    def parse_line(cls, line):
-        if match := re.match(r"Game (?P<id>\d+): (?P<groupstr>.*)", line):
-            id = match.group("id")
-            subsets = [parse_subset(gs) for gs in match.group("groupstr").split("; ")]
-            return cls(line, id, subsets)
-        else:
-            raise Exception(f"Could not parse line: {line}")
-
-
 def parse_subset(subset):
-    return (
-        int((m := re.search(r"(\d+) red", subset)) and m.group(1) or 0),
-        int((m := re.search(r"(\d+) green", subset)) and m.group(1) or 0),
-        int((m := re.search(r"(\d+) blue", subset)) and m.group(1) or 0),
+    return tuple(
+        int((m := re.search(fr"(\d+) {color}", subset)) and m.group(1) or 0)
+        for color in ("red", "green", "blue")
     )
 
 
 def combine_subsets(subsets):
     return tuple(max(vs) for vs in zip(*subsets))
 
+def parse_line(line):
+     match = re.match(r"Game (?P<id>\d+): (?P<groupstr>.*)", line)
+     return int(match.group("id")), match.group("groupstr").split("; ")
 
-def solve(datafile, bag):
+def solve(datafile):
+    bag = (12, 13, 14)
     tally = 0
+    
     for line in datafile:
-        game = Game.parse_line(line)
-        if game.match(bag):
-            tally += game.id
+        id, groupstrs = parse_line(line)
+        totals = combine_subsets([parse_subset(gs) for gs in groupstrs])
+        if all(a >= b for a, b in zip(bag, totals)):
+            debug("Adding %d", id)
+            tally += id
 
     return tally
 
@@ -63,7 +47,7 @@ def main(argv=sys.argv[1:]):
         format="%(message)s",
         level=logging.DEBUG if args.verbose else logging.WARNING,
     )
-    print(solve(args.datafile, (12, 13, 14)))
+    print(solve(args.datafile))
 
 
 from pathlib import Path
@@ -71,7 +55,7 @@ from pathlib import Path
 
 def test_sample():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    assert solve(datafile, (12, 13, 14)) == 8
+    assert solve(datafile) == 8
 
 
 def test_parse_subset():
@@ -85,7 +69,7 @@ def test_combine_subsets():
 
 def test_input():
     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
-    assert solve(datafile, (12, 13, 14)) > 198
+    assert solve(datafile) == 2268
 
 
 if __name__ == "__main__":
