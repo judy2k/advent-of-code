@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+
+"""
+Create a skeleton directory ready for working on an Advent of Code problem.
+"""
+
+from argparse import ArgumentParser
+from datetime import date
+from functools import partial
+from pathlib import Path
+import shutil
+import sys
+
+debug = partial(print, file=sys.stderr)
+
+
+def fail(*args, exit_code=1, **kwargs):
+    debug(*args, **kwargs)
+    sys.exit(exit_code)
+
+
+def parse_args(args):
+    ap = ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "day",
+        default=date.today().day,
+        nargs="?",
+        type=int,
+        help="The day of December to create the directory for. [default=today]",
+    )
+
+    return ap.parse_args(args)
+
+
+def main(args=sys.argv[1:]):
+    a = parse_args(args)
+
+    here = Path(__file__).parent
+    dir_name = f"day_{a.day:02d}"
+    target_dir = here / dir_name
+
+    if target_dir.exists():
+        fail(f"{target_dir} already exists! I ain't touching that.")
+
+    shutil.copytree(here / "template", target_dir)
+
+
+if __name__ == "__main__":
+    main()
