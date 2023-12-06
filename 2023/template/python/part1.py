@@ -3,6 +3,7 @@
 import argparse
 import logging
 from logging import debug, info, warn
+from pathlib import Path
 import sys
 
 
@@ -26,9 +27,7 @@ def main(argv=sys.argv[1:]):
     )
     print(solve(args.datafile))
 
-
-from pathlib import Path
-
+# Tests ------------------------------------------------------------------------
 
 def test_sample():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
