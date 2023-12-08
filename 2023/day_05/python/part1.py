@@ -6,39 +6,45 @@ from logging import debug, info, warn
 from pathlib import Path
 import sys
 
-from itertools import dropwhile
+from bisect import bisect_right
 import re
+from operator import itemgetter
+
+
+class Mapping:
+    def __init__(self, ranges):
+        self.starts = [0]
+        self.offsets = [0]
+
+        for d, s, n in sorted(ranges, key=itemgetter(1)):
+            if s == self.starts[-1]:
+                self.offsets[-1] = d - s
+                self.starts.append(s + n)
+                self.offsets.append(0)
+            else:
+                self.starts.append(s)
+                self.offsets.append(d - s)
+                self.starts.append(s + n)
+                self.offsets.append(0)
+    
+    def map(self, val):
+        i = bisect_right(self.starts, val) - 1
+        return val + self.offsets[i]
 
 
 def numbers(s):
     return tuple([int(i) for i in re.split(r'\s+', s.strip())])
 
 
-def map_all(maps, val, map_from="seed"):
-    while True:
-        map_from, val = maps[map_from].map(val)
-        if map_from == "location":
-            return val
-
-
-class Map:
-    def __init__(self, map_to, mapping_tuples):
-        self.map_to = map_to
-        self.mapping_tuples = sorted(mapping_tuples, reverse=True)
-    
-    def map(self, from_val) -> (str, int):
-        mt = iter(self.mapping_tuples)
-        item = next(dropwhile(lambda t: t[0] > from_val, mt), None)
-        if item:
-            s, d, n = item
-            if s <= from_val < s + n:
-                return self.map_to, from_val - s + d
-        return self.map_to, from_val
+def map_all(mappings, val):
+    for mapping in mappings:
+        val = mapping.map(val)
+    return val
 
 
 def parse_file(datafile):
     seeds = numbers(datafile.readline().split(':')[1])
-    maps = {}
+    maps = []
     
     assert datafile.readline() == '\n'
     
@@ -50,7 +56,7 @@ def parse_file(datafile):
         if match := re.match(r'(\w+)-to-(\w+) map:', line):
             map_from, map_to = match.groups()
         elif line in {'', '\n'}:
-            maps[map_from] = Map(map_to, mapping_tuples)
+            maps.append(Mapping(mapping_tuples))
 
             map_from, map_to = None, None
             mapping_tuples = []
@@ -58,7 +64,7 @@ def parse_file(datafile):
                 break # eof
         else:
             d, s, n = numbers(line)
-            mapping_tuples.append((s, d, n))
+            mapping_tuples.append((d, s, n))
 
     return seeds, maps
 
@@ -88,12 +94,11 @@ def test_parse_file():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
     seeds, maps = parse_file(datafile)
     assert seeds == (79, 14, 55, 13)
-    m = maps["seed"]
-    assert m.mapping_tuples[0] == (98, 50, 2)
-    assert m.map(79) == ("soil", 81)
-    assert m.map(14) == ("soil", 14)
-    assert m.map(55) == ("soil", 57)
-    assert m.map(13) == ("soil", 13)
+    m = maps[0]
+    assert m.map(79) == 81
+    assert m.map(14) == 14
+    assert m.map(55) == 57
+    assert m.map(13) == 13
 
 def test_sample():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
@@ -103,6 +108,19 @@ def test_sample():
 def test_input():
     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
     assert solve(datafile) == 240320250
+
+
+def test_bisect():
+    o = [0, 4, 7]
+    assert bisect_right(o, 0) - 1 == 0
+    assert bisect_right(o, 1) - 1 == 0
+    assert bisect_right(o, 3) - 1 == 0
+    assert bisect_right(o, 4) - 1 == 1
+    assert bisect_right(o, 5) - 1 == 1
+    assert bisect_right(o, 7) - 1 == 2
+    assert bisect_right(o, 8) - 1 == 2
+
+
 
 
 if __name__ == "__main__":
