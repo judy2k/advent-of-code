@@ -5,10 +5,11 @@ import logging
 from logging import debug, info, warn
 from pathlib import Path
 import sys
+from typing import List
 
 from bisect import bisect_right
 import re
-from operator import itemgetter
+from operator import itemgetter, attrgetter
 
 
 class Mapping:
@@ -27,38 +28,50 @@ class Mapping:
                 self.starts.append(s + n)
                 self.offsets.append(0)
     
-    def map(self, val):
+    def map(self, val) -> (int, int):
         i = bisect_right(self.starts, val) - 1
-        return val + self.offsets[i]
+        nextinc = (self.starts[i + 1] - val) if len(self.starts) > i + 1 else sys.maxsize
+
+        return val + self.offsets[i], nextinc
+
+
+def pairs(l):
+    return zip(
+        l[::2],
+        l[1::2],
+    )
 
 
 def numbers(s):
     return tuple([int(i) for i in re.split(r'\s+', s.strip())])
 
 
-def map_all(mappings, val):
+def map_all(mappings, val) -> (int, int):
+    nextinc = sys.maxsize
     for mapping in mappings:
-        val = mapping.map(val)
-    return val
+        val, ni = mapping.map(val)
+        nextinc = min(nextinc, ni)
+
+    return val, nextinc
 
 
-def parse_file(datafile):
-    seeds = numbers(datafile.readline().split(':')[1])
-    maps = []
+def parse_file(datafile) -> (List[range], List[Mapping]):
+    seeds = sorted([
+        range(start, start + n) for start, n in pairs(numbers(datafile.readline().split(':')[1]))
+    ], key=attrgetter("start"))
+    mappings = []
     
     assert datafile.readline() == '\n'
     
-    map_from, map_to = None, None
     mapping_tuples = []
     while True:
         # Read mapping:
         line = datafile.readline()
-        if match := re.match(r'(\w+)-to-(\w+) map:', line):
-            map_from, map_to = match.groups()
+        if re.match(r'(\w+)-to-(\w+) map:', line):
+            continue
         elif line in {'', '\n'}:
-            maps.append(Mapping(mapping_tuples))
+            mappings.append(Mapping(mapping_tuples))
 
-            map_from, map_to = None, None
             mapping_tuples = []
             if not line:
                 break # eof
@@ -66,13 +79,23 @@ def parse_file(datafile):
             d, s, n = numbers(line)
             mapping_tuples.append((d, s, n))
 
-    return seeds, maps
+    return seeds, mappings
 
 
 def solve(datafile):
-    seeds, maps = parse_file(datafile)
-    return min(map_all(maps, seed) for seed in seeds)
+    seed_ranges, mappings = parse_file(datafile)
 
+    result = sys.maxsize
+    for seed_range in seed_ranges:
+        seed = seed_range.start
+        while True:
+            val, nextinc = map_all(mappings, seed)
+            result = min(val, result)
+            if (seed + nextinc) in seed_range:
+                seed += nextinc
+            else:
+                break
+    return result
 
 
 def main(argv=sys.argv[1:]):
@@ -93,21 +116,22 @@ def main(argv=sys.argv[1:]):
 def test_parse_file():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
     seeds, maps = parse_file(datafile)
-    assert seeds == (79, 14, 55, 13)
+    assert seeds == [range(55, 55 + 13), range(79, 79 + 14)]
     m = maps[0]
-    assert m.map(79) == 81
-    assert m.map(14) == 14
-    assert m.map(55) == 57
-    assert m.map(13) == 13
+    assert m.map(79) == (81, 19)
+    assert m.map(14) == (14, 36)
+    assert m.map(55) == (57, 43)
+    assert m.map(13) == (13, 37)
+
 
 def test_sample():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    assert solve(datafile) == 35
+    assert solve(datafile) == 46
 
 
 def test_input():
     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
-    assert solve(datafile) == 240320250
+    assert solve(datafile) == 28580589
 
 
 def test_bisect():
