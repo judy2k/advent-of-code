@@ -20,30 +20,27 @@ class Mapping:
         for d, s, n in sorted(ranges, key=itemgetter(1)):
             if s == self.starts[-1]:
                 self.offsets[-1] = d - s
-                self.starts.append(s + n)
-                self.offsets.append(0)
             else:
                 self.starts.append(s)
                 self.offsets.append(d - s)
-                self.starts.append(s + n)
-                self.offsets.append(0)
-    
+            self.starts.append(s + n)
+            self.offsets.append(0)
+
     def map(self, val) -> (int, int):
         i = bisect_right(self.starts, val) - 1
-        nextinc = (self.starts[i + 1] - val) if len(self.starts) > i + 1 else sys.maxsize
+        nextinc = (
+            (self.starts[i + 1] - val) if len(self.starts) > i + 1 else sys.maxsize
+        )
 
         return val + self.offsets[i], nextinc
 
 
 def pairs(l):
-    return zip(
-        l[::2],
-        l[1::2],
-    )
+    return zip(l[::2], l[1::2])
 
 
 def numbers(s):
-    return tuple([int(i) for i in re.split(r'\s+', s.strip())])
+    return tuple([int(i) for i in re.findall(r"\d+", s)])
 
 
 def map_all(mappings, val) -> (int, int):
@@ -56,28 +53,35 @@ def map_all(mappings, val) -> (int, int):
 
 
 def parse_file(datafile) -> (List[range], List[Mapping]):
-    seeds = sorted([
-        range(start, start + n) for start, n in pairs(numbers(datafile.readline().split(':')[1]))
-    ], key=attrgetter("start"))
+    seeds = sorted(
+        [
+            range(start, start + n)
+            for start, n in pairs(numbers(datafile.readline().split(":")[1]))
+        ],
+        key=attrgetter("start"),
+    )
     mappings = []
-    
-    assert datafile.readline() == '\n'
-    
-    mapping_tuples = []
+
+    assert datafile.readline() == "\n"
+
     while True:
+        mapping_tuples = []
+
         # Read mapping:
         line = datafile.readline()
-        if re.match(r'(\w+)-to-(\w+) map:', line):
-            continue
-        elif line in {'', '\n'}:
-            mappings.append(Mapping(mapping_tuples))
+        assert re.match(r"(\w+)-to-(\w+) map:", line)
 
-            mapping_tuples = []
-            if not line:
-                break # eof
-        else:
-            d, s, n = numbers(line)
-            mapping_tuples.append((d, s, n))
+        while True:
+            line = datafile.readline()
+            if ns := numbers(line):
+                mapping_tuples.append(ns)
+            else:
+                break
+
+        mappings.append(Mapping(mapping_tuples))
+
+        if not line:
+            break  # eof
 
     return seeds, mappings
 
@@ -111,7 +115,9 @@ def main(argv=sys.argv[1:]):
     )
     print(solve(args.datafile))
 
+
 # Tests ------------------------------------------------------------------------
+
 
 def test_parse_file():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()

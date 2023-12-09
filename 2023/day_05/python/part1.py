@@ -26,14 +26,14 @@ class Mapping:
                 self.offsets.append(d - s)
                 self.starts.append(s + n)
                 self.offsets.append(0)
-    
+
     def map(self, val):
         i = bisect_right(self.starts, val) - 1
         return val + self.offsets[i]
 
 
 def numbers(s):
-    return tuple([int(i) for i in re.split(r'\s+', s.strip())])
+    return tuple([int(i) for i in re.findall(r"-?\d+", s)])
 
 
 def map_all(mappings, val):
@@ -43,25 +43,25 @@ def map_all(mappings, val):
 
 
 def parse_file(datafile):
-    seeds = numbers(datafile.readline().split(':')[1])
+    seeds = numbers(datafile.readline().split(":")[1])
     maps = []
-    
-    assert datafile.readline() == '\n'
-    
+
+    assert datafile.readline() == "\n"
+
     map_from, map_to = None, None
     mapping_tuples = []
     while True:
         # Read mapping:
         line = datafile.readline()
-        if match := re.match(r'(\w+)-to-(\w+) map:', line):
+        if match := re.match(r"(\w+)-to-(\w+) map:", line):
             map_from, map_to = match.groups()
-        elif line in {'', '\n'}:
+        elif line in {"", "\n"}:
             maps.append(Mapping(mapping_tuples))
 
             map_from, map_to = None, None
             mapping_tuples = []
             if not line:
-                break # eof
+                break  # eof
         else:
             d, s, n = numbers(line)
             mapping_tuples.append((d, s, n))
@@ -72,7 +72,6 @@ def parse_file(datafile):
 def solve(datafile):
     seeds, maps = parse_file(datafile)
     return min(map_all(maps, seed) for seed in seeds)
-
 
 
 def main(argv=sys.argv[1:]):
@@ -88,7 +87,9 @@ def main(argv=sys.argv[1:]):
     )
     print(solve(args.datafile))
 
+
 # Tests ------------------------------------------------------------------------
+
 
 def test_parse_file():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
@@ -99,6 +100,7 @@ def test_parse_file():
     assert m.map(14) == 14
     assert m.map(55) == 57
     assert m.map(13) == 13
+
 
 def test_sample():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
