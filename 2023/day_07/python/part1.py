@@ -45,12 +45,7 @@ def parse_file(datafile) -> (Counter, int):
 
 def solve(datafile):
     hand_bids = sorted(parse_file(datafile))
-    winnings = 0
-    for rank, hand_bid in enumerate(hand_bids, start=1):
-        _, bid = hand_bid
-        winnings += rank * bid
-
-    return winnings
+    return sum(rank * bid for rank, (_, bid) in enumerate(hand_bids, start=1))
 
 
 def main(argv=sys.argv[1:]):
