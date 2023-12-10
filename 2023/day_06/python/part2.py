@@ -7,8 +7,18 @@ from pathlib import Path
 import re
 import sys
 
-from functools import reduce
-from operator import mul
+from bisect import bisect_left
+
+
+class Calc:
+    def __init__(self, time):
+        self._time = time
+
+    def __len__(self):
+        return self._time + 1
+
+    def __getitem__(self, i):
+        return (self._time - i) * i
 
 
 def joined_int(s):
@@ -16,7 +26,7 @@ def joined_int(s):
 
 
 def count_winners(time, distance):
-    return sum(1 for t in range(0, time + 1) if (time - t) * t > distance)
+    return time + 1 - bisect_left(Calc(time), distance) * 2
 
 
 def parse(datafile):
