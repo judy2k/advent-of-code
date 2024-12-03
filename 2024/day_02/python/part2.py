@@ -25,7 +25,7 @@ def sign(n):
 
 
 def is_safe(ns: list[int]) -> bool:
-    sign_counter = Counter([sign(d) for d in [b - a for a, b in zip(ns, ns[1:])]])
+    sign_counter = Counter([sign(d) for d in [b - a for a, b in list(zip(ns, ns[1:]))[:4]]])
     direction = sign_counter.most_common()[0][0]
 
     return check_levels(ns, direction, True)
@@ -37,10 +37,10 @@ def check_levels(ns: list[int], direction: int, can_relax):
         if not 1 <= (ns[idx + 1] - ns[idx]) * direction <= 3:
             return can_relax and (
                 check_levels(
-                    ns[idx - 1 : idx] + ns[idx + 1 :], direction, False
+                    ns[max(idx - 1, 0) : idx] + ns[idx + 1 :], direction, False
                 )  # Try without idx
                 or check_levels(
-                    ns[idx : idx + 1] + ns[idx + 2 :], direction, False
+                    ns[ max(idx, 0) : idx + 1] + ns[idx + 2 :], direction, False
                 )  # Try without idx+1
             )
         idx += 1
