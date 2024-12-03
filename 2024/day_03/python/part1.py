@@ -8,7 +8,8 @@ import sys
 
 import re
 
-INSTRUCTION_FINDER = re.compile(r'''mul\((\d{1,3}),(\d{1,3})\)''')
+INSTRUCTION_FINDER = re.compile(r"""mul\((\d{1,3}),(\d{1,3})\)""")
+
 
 def solve(datafile):
     tally = 0
@@ -31,17 +32,21 @@ def main(argv=sys.argv[1:]):
     )
     print(solve(args.datafile))
 
+
 # Tests ------------------------------------------------------------------------
+
 
 def test_sample():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
     assert solve(datafile) == 161
+
 
 def test_regex():
     match = INSTRUCTION_FINDER.match("mul(12,13)")
     assert match is not None
     assert match.group(1) == "12"
     assert match.group(2) == "13"
+
 
 def test_input():
     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
