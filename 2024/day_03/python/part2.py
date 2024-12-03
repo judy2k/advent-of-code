@@ -56,7 +56,7 @@ def test_regex():
 
 def test_input():
     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
-    assert solve(datafile) == 175015740
+    assert solve(datafile) == 112272912
 
 
 if __name__ == "__main__":
