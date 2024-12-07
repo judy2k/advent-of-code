@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import functools
 import logging
 import sys
 from itertools import takewhile
@@ -16,10 +17,17 @@ def solve(datafile):
         list(int(t) for t in line.split(",")) for line in datafile if "," in line
     ]
 
+    def cmp(left, right):
+        return 1 if (left, right) in ordering_rules else -1
+
     def in_order(update):
         return all(pair in ordering_rules for pair in zip(update, update[1:]))
 
-    return sum(update[len(update) // 2] for update in updates if in_order(update))
+    return sum(
+        sorted(update, key=functools.cmp_to_key(cmp))[len(update) // 2]
+        for update in updates
+        if not in_order(update)
+    )
 
 
 def main(argv=sys.argv[1:]):
@@ -41,12 +49,12 @@ def main(argv=sys.argv[1:]):
 
 def test_sample():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    assert solve(datafile) == 143
+    assert solve(datafile) == 123
 
 
 def test_input():
     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
-    assert solve(datafile) == 5588
+    assert solve(datafile) == 5331
 
 
 if __name__ == "__main__":
