@@ -3,44 +3,42 @@
 import argparse
 import logging
 import sys
+from itertools import product
 from pathlib import Path
 
 XMAS = list("XMAS")
 
 
 def solve(datafile):
-    tally = 0
     input_lines: list[list[str]] = [list(line.strip()) for line in datafile.readlines()]
 
     row_count = len(input_lines)
     col_count = len(input_lines[0])
 
-    def chars(f):
+    def is_xmas(f):
         return [
             input_lines[row][col]
             for row, col in (f(i) for i in range(4))
             if 0 <= row < row_count and 0 <= col < col_count
-        ]
+        ] == XMAS
 
-    for row in range(row_count):
-        for col in range(col_count):
-            if input_lines[row][col] == "X":
-                tally += sum(
-                    1
-                    for slice in (
-                        chars(lambda i: (row, col + i)),
-                        chars(lambda i: (row, col - i)),
-                        chars(lambda i: (row + i, col)),
-                        chars(lambda i: (row - i, col)),
-                        chars(lambda i: (row + i, col + i)),
-                        chars(lambda i: (row - i, col - i)),
-                        chars(lambda i: (row + i, col - i)),
-                        chars(lambda i: (row - i, col + i)),
-                    )
-                    if slice == XMAS
-                )
+    def are_xmas(*fs):
+        return sum(is_xmas(f) for f in fs)
 
-    return tally
+    return sum(
+        are_xmas(
+            lambda i: (row, col + i),
+            lambda i: (row, col - i),
+            lambda i: (row + i, col),
+            lambda i: (row + i, col + i),
+            lambda i: (row + i, col - i),
+            lambda i: (row - i, col),
+            lambda i: (row - i, col + i),
+            lambda i: (row - i, col - i),
+        )
+        for row, col in product(range(row_count), range(col_count))
+        if input_lines[row][col] == "X"
+    )
 
 
 def main(argv=sys.argv[1:]):

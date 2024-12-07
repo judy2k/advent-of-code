@@ -13,28 +13,31 @@ DIAGONALS = {
 
 
 def solve(datafile):
-    tally = 0
     input_lines: list[list[str]] = [list(line.strip()) for line in datafile.readlines()]
 
     row_count = len(input_lines)
     col_count = len(input_lines[0])
 
-    def chars(f):
+    def is_diagonal(f):
         return (
-            input_lines[row][col]
-            for row, col in (f(i) for i in range(3))
-            if 0 <= row < row_count and 0 <= col < col_count
+            tuple(
+                input_lines[row][col]
+                for row, col in (f(i) for i in range(3))
+                if 0 <= row < row_count and 0 <= col < col_count
+            )
+            in DIAGONALS
         )
 
-    for row, col in itertools.product(range(row_count), range(col_count)):
-        if input_lines[row][col] == "A":
-            if (
-                tuple(chars(lambda i: (row - 1 + i, col - 1 + i))) in DIAGONALS
-                and tuple(chars(lambda i: (row + 1 - i, col - 1 + i))) in DIAGONALS
-            ):
-                tally += 1
+    def is_xmas(row, col):
+        return is_diagonal(lambda i: (row - 1 + i, col - 1 + i)) and is_diagonal(
+            lambda i: (row + 1 - i, col - 1 + i)
+        )
 
-    return tally
+    return sum(
+        is_xmas(row, col)
+        for row, col in itertools.product(range(row_count), range(col_count))
+        if input_lines[row][col] == "A"
+    )
 
 
 def main(argv=sys.argv[1:]):
