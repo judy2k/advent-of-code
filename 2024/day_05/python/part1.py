@@ -16,6 +16,20 @@ def solve(datafile):
         [list(int(t) for t in line.split(",")) for line in datafile if "," in line]
     ]
 
+    ordering_rules = dict()
+    for k, v in or_tuples.items():
+        ordering_rules.setdefault(k, set()).append(v)
+
+    def cmp(left, right):
+        if right in ordering_rules.get(k, set()):
+            return 1
+        elif left in ordering_rules.get(v, set()):
+            return -1
+        else:
+            raise KeyError(
+                f"Could not find {left} or {right} in the ordering rules {ordering_rules!r}"
+            )
+
     return 0
 
 
