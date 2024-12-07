@@ -20,13 +20,10 @@ def solve(datafile):
     def cmp(left, right):
         return 1 if (left, right) in ordering_rules else -1
 
-    def in_order(update):
-        return all(pair in ordering_rules for pair in zip(update, update[1:]))
-
     return sum(
         sorted(update, key=functools.cmp_to_key(cmp))[len(update) // 2]
         for update in updates
-        if not in_order(update)
+        if not all(pair in ordering_rules for pair in zip(update, update[1:]))
     )
 
 

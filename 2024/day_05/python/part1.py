@@ -16,10 +16,11 @@ def solve(datafile):
         list(int(t) for t in line.split(",")) for line in datafile if "," in line
     ]
 
-    def in_order(update):
-        return all(pair in ordering_rules for pair in zip(update, update[1:]))
-
-    return sum(update[len(update) // 2] for update in updates if in_order(update))
+    return sum(
+        update[len(update) // 2]
+        for update in updates
+        if all(pair in ordering_rules for pair in zip(update, update[1:]))
+    )
 
 
 def main(argv=sys.argv[1:]):
