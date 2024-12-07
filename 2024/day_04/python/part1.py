@@ -24,13 +24,11 @@ def solve(datafile):
                         input_lines[row][col : col + 4],
                         input_lines[row][col : col - 4 if col >= 4 else None : -1],
                         [
-                            input_lines[r][col]
-                            for r in range(row, min(row_count, row + 4))
+                            input_lines[row + i][col]
+                            for i in range(4)
+                            if row + i < row_count
                         ],
-                        [
-                            input_lines[r][col]
-                            for r in range(row, row - 4 if row >= 4 else -1, -1)
-                        ],
+                        [input_lines[row - i][col] for i in range(4) if row - i >= 0],
                         [
                             input_lines[row + i][col + i]
                             for i in range(4)
