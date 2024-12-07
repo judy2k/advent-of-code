@@ -15,40 +15,27 @@ def solve(datafile):
     row_count = len(input_lines)
     col_count = len(input_lines[0])
 
+    def chars(f):
+        return [
+            input_lines[row][col]
+            for row, col in (f(i) for i in range(4))
+            if 0 <= row < row_count and 0 <= col < col_count
+        ]
+
     for row in range(row_count):
         for col in range(col_count):
             if input_lines[row][col] == "X":
                 tally += sum(
                     1
                     for slice in (
-                        input_lines[row][col : col + 4],
-                        input_lines[row][col : col - 4 if col >= 4 else None : -1],
-                        [
-                            input_lines[row + i][col]
-                            for i in range(4)
-                            if row + i < row_count
-                        ],
-                        [input_lines[row - i][col] for i in range(4) if row - i >= 0],
-                        [
-                            input_lines[row + i][col + i]
-                            for i in range(4)
-                            if row + i < row_count and col + i < col_count
-                        ],
-                        [
-                            input_lines[row - i][col - i]
-                            for i in range(4)
-                            if row - i >= 0 and col - i >= 0
-                        ],
-                        [
-                            input_lines[row + i][col - i]
-                            for i in range(4)
-                            if row + i < row_count and col - i >= 0
-                        ],
-                        [
-                            input_lines[row - i][col + i]
-                            for i in range(4)
-                            if row - i >= 0 and col + i < col_count
-                        ],
+                        chars(lambda i: (row, col + i)),
+                        chars(lambda i: (row, col - i)),
+                        chars(lambda i: (row + i, col)),
+                        chars(lambda i: (row - i, col)),
+                        chars(lambda i: (row + i, col + i)),
+                        chars(lambda i: (row - i, col - i)),
+                        chars(lambda i: (row + i, col - i)),
+                        chars(lambda i: (row - i, col + i)),
                     )
                     if slice == XMAS
                 )
