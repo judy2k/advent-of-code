@@ -3,6 +3,7 @@
 import argparse
 import logging
 import sys
+from itertools import product
 from pathlib import Path
 
 DIRECTIONS = [
@@ -13,73 +14,57 @@ DIRECTIONS = [
 ]
 
 
-def solve(datafile):
+def solve_grid(grid, location, blocked_location):
+    if grid[blocked_location[0]][blocked_location[1]] == "#":
+        return False
+
+    grid_height = len(grid)
+    grid_width = len(grid[0])
+
     direction = (-1, 0)
     visited_locations = set()
-    grid = [line.strip() for line in datafile]
+
+    def inside_grid(row, col):
+        return 0 <= row < grid_height and 0 <= col < grid_width
+
+    def blocked(row, col):
+        return inside_grid(row, col) and (
+            grid[row][col] == "#" or blocked_location == (row, col)
+        )
+
+    def rotate(direction):
+        return DIRECTIONS[(DIRECTIONS.index(direction) + 1) % 4]
+
+    while inside_grid(*location):
+        visited_locations.add((location, direction))
+        pending_location = (location[0] + direction[0], location[1] + direction[1])
+        if blocked(*pending_location):
+            direction = rotate(direction)
+        else:
+            if (pending_location, direction) in visited_locations:
+                return True
+            location = pending_location
+
+    return False
+
+
+def solve(datafile):
+    grid = [list(line.strip()) for line in datafile]
     grid_height = len(grid)
     grid_width = len(grid[0])
 
     for i, row in enumerate(grid):
         if "^" in row:
             location = (i, row.index("^"))
+            grid[location[0]][location[1]] = "."
             break
-    grid[location[0]] = grid[location[0]].replace("^", ".")
 
-    def inside_grid(row, col):
-        return 0 <= row < grid_height and 0 <= col < grid_width
+    tally = 0
+    for row, col in product(range(grid_height), range(grid_width)):
+        if solve_grid(grid, location, (row, col)):
+            tally += 1
 
-    def blocked(row, col):
-        return inside_grid(row, col) and grid[row][col] == "#"
-
-    def rotate(direction):
-        return DIRECTIONS[(DIRECTIONS.index(direction) + 1) % 4]
-
-    def create_blocking_location(corners, location, direction):
-        print(f"Create blockage for {corners} in direction {direction}")
-        match direction:
-            case (0, -1):
-                block = (corners[-1][0], min(corner[1] for corner in corners) - 1)
-            case (0, 1):
-                block = (corners[-1][0], max(corner[1] for corner in corners) + 1)
-            case (-1, 0):
-                block = (
-                    min(corner[0] for corner in corners) - 1,
-                    corners[-1][1],
-                )
-            case (1, 0):
-                block = (
-                    max(corner[0] for corner in corners) + 1,
-                    corners[-1][1],
-                )
-
-        pl = location
-        while pl != block:
-            if blocked(*pl):
-                return None
-            pl = (pl[0] + direction[0], pl[1] + direction[1])
-        return block
-
-    turning_locations = []
-    while inside_grid(*location):
-        visited_locations.add(location)
-        for _ in range(3):
-            pending_location = (location[0] + direction[0], location[1] + direction[1])
-            if not blocked(*pending_location):
-                break
-            direction = rotate(direction)
-            turning_locations.append(location)
-            if len(turning_locations) >= 3:
-                print(
-                    create_blocking_location(
-                        turning_locations[-3:], location, direction
-                    )
-                )
-        else:
-            raise Exception("Spinning")
-        location = pending_location
-
-    return len(visited_locations)
+    return tally
 
 
 def main(argv=sys.argv[1:]):
@@ -106,7 +91,7 @@ def test_sample():
 
 def test_input():
     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
-    assert solve(datafile) == -1
+    assert solve(datafile) == 1482
 
 
 if __name__ == "__main__":
