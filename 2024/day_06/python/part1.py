@@ -37,14 +37,11 @@ def solve(datafile):
 
     while inside_grid(*location):
         visited_locations.add(location)
-        for _ in range(3):
-            pending_location = (location[0] + direction[0], location[1] + direction[1])
-            if not blocked(*pending_location):
-                break
+        pending_location = (location[0] + direction[0], location[1] + direction[1])
+        if blocked(*pending_location):
             direction = rotate(direction)
         else:
-            raise Exception("Spinning")
-        location = pending_location
+            location = pending_location
 
     return len(visited_locations)
 
