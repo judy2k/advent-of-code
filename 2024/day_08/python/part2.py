@@ -31,11 +31,10 @@ def solve(datafile):
         row, col = location
         return 0 <= row < height and 0 <= col < width
 
-    for frequency, locations in antennae.items():
+    for locations in antennae.values():
         for a, b in permutations(locations, 2):
-            antinodes.add(b)
             d = tsub(b, a)
-            location = b
+            location = a
             while True:
                 location = tadd(location, d)
                 if in_bounds(location):
