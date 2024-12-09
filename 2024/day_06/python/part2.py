@@ -2,10 +2,13 @@
 
 import argparse
 import logging
+import multiprocessing
 import sys
 from pathlib import Path
 
-from tqdm import tqdm
+from joblib import Parallel, delayed
+
+num_cores = multiprocessing.cpu_count()
 
 DIRECTIONS = [
     (-1, 0),
@@ -78,8 +81,10 @@ def solve(datafile):
             grid[location[0]][location[1]] = "."
             break
     return sum(
-        solve_grid(grid, location, (row, col))
-        for row, col in tqdm(visited_locations(grid, location) - set((location)))
+        Parallel(n_jobs=num_cores)(
+            delayed(solve_grid)(grid, location, (row, col))
+            for row, col in visited_locations(grid, location) - set((location))
+        )
     )
 
 
