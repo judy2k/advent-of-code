@@ -13,27 +13,6 @@ DIRECTIONS = [
 ]
 
 
-def visited_locations(grid, location):
-    direction = (-1, 0)
-    visited_locations = set()
-
-    def inside_grid(row, col):
-        return 0 <= row < len(grid) and 0 <= col < len(grid[0])
-
-    def blocked(row, col):
-        return inside_grid(row, col) and (grid[row][col] == "#")
-
-    while inside_grid(*location):
-        visited_locations.add(location)
-        pending_location = (location[0] + direction[0], location[1] + direction[1])
-        if blocked(*pending_location):
-            direction = DIRECTIONS[(DIRECTIONS.index(direction) + 1) % 4]
-        else:
-            location = pending_location
-
-    return visited_locations
-
-
 def solve_grid(grid, location, blocked_location):
     if grid[blocked_location[0]][blocked_location[1]] == "#":
         return False
@@ -65,7 +44,7 @@ def solve_grid(grid, location, blocked_location):
         else:
             location = pending_location
 
-    return False
+    return {visited_location[0] for visited_location in visited_locations}
 
 
 def solve(datafile):
@@ -73,11 +52,14 @@ def solve(datafile):
     for i, row in enumerate(grid):
         if "^" in row:
             location = (i, row.index("^"))
-            grid[location[0]][location[1]] = "."
             break
     return sum(
-        solve_grid(grid, location, (row, col))
-        for row, col in visited_locations(grid, location) - set((location))
+        r
+        for r in (
+            solve_grid(grid, location, block)
+            for block in solve_grid(grid, location, (-1, -1))
+        )
+        if r is True
     )
 
 
