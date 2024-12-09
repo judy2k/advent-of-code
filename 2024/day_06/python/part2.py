@@ -3,7 +3,31 @@
 import argparse
 import logging
 import sys
+from itertools import product
 from pathlib import Path
+
+from tqdm import tqdm
+
+
+class Grid:
+    def __init__(self, rows: list[list[str]]):
+        self.location = (-1, -1)
+        self.height = len(rows)
+        self.width = len(rows[0])
+        self.blocks = set()
+        for row, col in product(range(self.height), range(self.width)):
+            if rows[row][col] == "#":
+                self.blocks.add((row, col))
+            elif rows[row][col] == "^":
+                self.location = (row, col)
+
+    def inside(self, location):
+        row, col = location
+        return 0 <= row < self.height and 0 <= col < self.width
+
+    def blocked(self, location):
+        return self.inside(location) and location in self.blocks
+
 
 DIRECTIONS = [
     (-1, 0),
@@ -13,33 +37,26 @@ DIRECTIONS = [
 ]
 
 
-def solve_grid(grid, location, blocked_location):
-    if grid[blocked_location[0]][blocked_location[1]] == "#":
+def solve_grid(grid: Grid, blocked_location):
+    if grid.blocked(blocked_location):
         return False
 
-    grid_height = len(grid)
-    grid_width = len(grid[0])
-
+    location = grid.location
     direction = (-1, 0)
     visited_locations = set()
-
-    def inside_grid(row, col):
-        return 0 <= row < grid_height and 0 <= col < grid_width
-
-    def blocked(row, col):
-        return inside_grid(row, col) and (
-            grid[row][col] == "#" or blocked_location == (row, col)
-        )
 
     def rotate(direction):
         return DIRECTIONS[(DIRECTIONS.index(direction) + 1) % 4]
 
-    while inside_grid(*location):
+    while grid.inside(location):
         if (location, direction) in visited_locations:
             return True
         visited_locations.add((location, direction))
         pending_location = (location[0] + direction[0], location[1] + direction[1])
-        if blocked(*pending_location):
+        if (
+            grid.blocked(pending_location)
+            or pending_location == blocked_location
+        ):
             direction = rotate(direction)
         else:
             location = pending_location
@@ -48,16 +65,13 @@ def solve_grid(grid, location, blocked_location):
 
 
 def solve(datafile):
-    grid = [list(line.strip()) for line in datafile]
-    for i, row in enumerate(grid):
-        if "^" in row:
-            location = (i, row.index("^"))
-            break
+    grid = Grid([list(line.strip()) for line in datafile])
+
     return sum(
-        r
+        1
         for r in (
-            solve_grid(grid, location, block)
-            for block in solve_grid(grid, location, (-1, -1))
+            solve_grid(grid, block)
+            for block in tqdm(solve_grid(grid, (-1, -1)))
         )
         if r is True
     )
@@ -92,3 +106,4 @@ def test_input():
 
 if __name__ == "__main__":
     main()
+#
