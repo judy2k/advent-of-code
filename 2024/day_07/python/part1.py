@@ -2,16 +2,38 @@
 
 import argparse
 import logging
-from logging import debug, info, warn
-from pathlib import Path
 import sys
+from collections import deque
+from itertools import product
+from operator import add, mul
+from pathlib import Path
+
+
+def is_solvable(target, operands):
+    possible_operators = [add, mul]
+    combos = product(possible_operators, repeat=len(operands) - 1)
+
+    for operators in combos:
+        stack = deque(operands)
+        for operator in operators:
+            stack.appendleft(operator(stack.popleft(), stack.popleft()))
+        if stack.popleft() == target:
+            return True
+    return False
 
 
 def solve(datafile):
-    for line in datafile:
-        pass
+    tally = 0
 
-    return 0
+    for line in datafile:
+        target, operands = line.split(": ")
+        target = int(target)
+        operands = [int(t) for t in operands.split()]
+
+        if is_solvable(target, operands):
+            tally += target
+
+    return tally
 
 
 def main(argv=sys.argv[1:]):
@@ -31,12 +53,12 @@ def main(argv=sys.argv[1:]):
 
 def test_sample():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    assert solve(datafile) == TODO
+    assert solve(datafile) == 3749
 
 
-# def test_input():
-#     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
-#     assert solve(datafile) == TODO
+def test_input():
+    datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
+    assert solve(datafile) == 267566105056
 
 
 if __name__ == "__main__":
