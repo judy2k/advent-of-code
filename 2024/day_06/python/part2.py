@@ -2,13 +2,8 @@
 
 import argparse
 import logging
-import multiprocessing
 import sys
 from pathlib import Path
-
-from joblib import Parallel, delayed
-
-num_cores = multiprocessing.cpu_count()
 
 DIRECTIONS = [
     (-1, 0),
@@ -81,10 +76,8 @@ def solve(datafile):
             grid[location[0]][location[1]] = "."
             break
     return sum(
-        Parallel(n_jobs=num_cores)(
-            delayed(solve_grid)(grid, location, (row, col))
-            for row, col in visited_locations(grid, location) - set((location))
-        )
+        solve_grid(grid, location, (row, col))
+        for row, col in visited_locations(grid, location) - set((location))
     )
 
 
