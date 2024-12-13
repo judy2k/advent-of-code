@@ -56,9 +56,13 @@ def solve(datafile):
 
     tally = 0
     pos = 0
-    for file_id, count in file_blocks:
-        tally += int(file_id * ((pos * count) + (count * (count - 1) / 2)))
-        pos += count
+    for item in file_blocks:
+        if isinstance(item, tuple):
+            file_id, count = item
+            tally += int(file_id * ((pos * count) + (count * (count - 1) / 2)))
+            pos += count
+        else:
+            pos += item
 
     return tally
 
