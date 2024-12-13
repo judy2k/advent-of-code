@@ -6,9 +6,12 @@ import sys
 from collections.abc import Iterator
 from itertools import islice, tee, zip_longest
 from pathlib import Path
+from typing import Any
+
+from tqdm import tqdm
 
 
-def pairs(iters) -> Iterator[tuple[int, int | None]]:
+def pairs(iters) -> Iterator[tuple[Any, Any | None]]:
     window_size = 2
     return zip_longest(
         *(
@@ -22,38 +25,33 @@ def defrag(filesystem):
     # Pointer to the file being considered:
     defrag = len(filesystem) - 1
 
-    while defrag > 0:
+    for defrag in tqdm(range(len(filesystem) - 1, 0, -2)):
         file_id, blocks = filesystem[defrag][0]
 
         for space_idx in range(1, defrag, 2):
             if filesystem[space_idx] >= blocks:
                 # Move file:
                 filesystem[defrag][0] = (file_id, 0)  # src
-                filesystem[defrag - 1] += blocks
+                filesystem[defrag - 1] += blocks  # src space
                 filesystem[space_idx - 1].append((file_id, blocks))  # dest
                 filesystem[space_idx] -= blocks  # update space
                 break
-
-        defrag -= 2
 
 
 def checksum(filesystem):
     tally = 0
     pos = 0
-    for item in filesystem:
-        if isinstance(item, list):
-            for file_id, count in item:
-                tally += int(
-                    file_id * ((pos * count) + (count * (count - 1) / 2))
-                )
-                pos += count
-        else:
-            pos += item
+    for files, space_count in pairs(filesystem):
+        for file_id, count in files:
+            tally += int(file_id * ((pos * count) + (count * (count - 1) / 2)))
+            pos += count
+        if space_count is not None:
+            pos += space_count
 
     return tally
 
 
-def solve(datafile):
+def read_input(datafile):
     input_ints = (int(t) for t in datafile.read().strip())
 
     file_id = 0
@@ -64,13 +62,14 @@ def solve(datafile):
         if empty_space is not None:
             # Append an int containing empty space:
             filesystem.append(empty_space)
-
         file_id += 1
 
+    return filesystem
+
+
+def solve(datafile):
+    filesystem = read_input(datafile)
     defrag(filesystem)
-
-    print(filesystem)
-
     return checksum(filesystem)
 
 
