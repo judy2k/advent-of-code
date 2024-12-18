@@ -1,0 +1,8 @@
+test:
+    coverage run -m pytest
+    coverage report
+    mypy src
+    interrogate src
+
+clean:
+    rm -rf htmlcov
