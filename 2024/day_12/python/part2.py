@@ -32,21 +32,19 @@ class Region:
 
     def bounding_box(self):
         rows, cols = zip(*self.plots)
-        min_row, max_row = min(rows), max(rows)
-        min_col, max_col = min(cols), max(cols)
-        return min_row, max_row, min_col, max_col
+        return min(rows), max(rows), min(cols), max(cols)
 
     def perimeters(self):
         min_row, max_row, min_col, max_col = self.bounding_box()
 
-        # Scan down:
         perimeters = sum(
             chain(
+                # Scan Down (horizontal perimeters)
                 (
                     len(
                         [
                             k
-                            for k, v in groupby(
+                            for k, _ in groupby(
                                 [
                                     ((row, col) in self.plots)
                                     - ((row + 1, col) in self.plots)
@@ -58,6 +56,7 @@ class Region:
                     )
                     for row in range(min_row - 1, max_row + 1)
                 ),
+                # Scan Across (vertical perimeters)
                 (
                     len(
                         [
