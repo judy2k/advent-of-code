@@ -13,7 +13,6 @@ class Region:
     def __init__(self, grid, starting_pos):
         self.letter = grid[starting_pos[0]][starting_pos[1]]
         self.plots = set()
-        self.perimeter = 0
         self._add_plot(grid, starting_pos)
 
     def contains(self, plot):
@@ -30,11 +29,42 @@ class Region:
             ):
                 if neighbour not in self.plots:
                     self._add_plot(grid, neighbour)
-            else:
-                self.perimeter += 1
+
+    def bounding_box(self):
+        rows, cols = zip(*self.plots)
+        min_row, max_row = min(rows), max(rows)
+        min_col, max_col = min(cols), max(cols)
+        return min_row, max_row, min_col, max_col
 
     def score(self):
-        return len(self.plots) * self.perimeter
+        min_row, max_row, min_col, max_col = self.bounding_box()
+
+        perimeters = 0
+        # Scan down:
+        for row in range(min_row - 1, max_row + 1):
+            for col in range(min_col - 1, max_col + 2):
+                if (
+                    (row, col) in self.plots
+                    and (row + 1, col) not in self.plots
+                ) or (
+                    (row, col) not in self.plots
+                    and (row + 1, col) in self.plots
+                ):
+                    perimeters += 1
+
+        # Scan across:
+        for col in range(min_col - 1, max_col + 1):
+            for row in range(min_row - 1, max_row + 2):
+                if (
+                    (row, col) in self.plots
+                    and (row, col + 1) not in self.plots
+                ) or (
+                    (row, col) not in self.plots
+                    and (row, col + 1) in self.plots
+                ):
+                    perimeters += 1
+
+        return len(self.plots) * perimeters
 
 
 def solve(datafile):
