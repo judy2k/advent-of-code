@@ -27,21 +27,22 @@ def score(a, b):
 
 def solve_game(ax, ay, bx, by, target_x, target_y):
     max_a = min(target_x // ax, target_y // ay)
-    solutions = []
-    for a in range(0, max_a + 1):
-        remain_x = target_x - a * ax
-        remain_y = target_y - a * ay
-        if (
-            remain_x % bx == 0
-            and remain_y % by == 0
-            and remain_x // bx == remain_y // by
-        ):
-            b = remain_x // bx
-            solutions.append((score(a, b), a, b))
 
-    if solutions:
-        return min(solutions)[0]
-    return 0
+    return min(
+        [
+            score(a, remain_x // bx)
+            for (a, remain_x, remain_y) in (
+                (a, target_x - a * ax, target_y - a * ay)
+                for a in range(0, max_a + 1)
+            )
+            if (
+                remain_x % bx == 0
+                and remain_y % by == 0
+                and remain_x // bx == remain_y // by
+            )
+        ]
+        or [0]
+    )
 
 
 def main(argv=sys.argv[1:]):
