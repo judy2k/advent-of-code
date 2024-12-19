@@ -26,9 +26,63 @@ def test_basic():
     assert grid.in_bounds(Location(0, 2))
     assert not grid.in_bounds(Location(0, 3))
 
+def test_Grid_adjacent():
+    grid = Grid.read(
+        io.StringIO("""a b c
+    d e f""")
+    )
     adj = list(grid.adjacent(Location(0, 0), include_diagonals=False))
     adj.sort()
-    assert len(adj) == 2
+    assert adj == [(Location(0, 1), "b"), (Location(1, 0), "d")]
+
+    adj = list(
+        grid.adjacent(
+            Location(0, 0), include_diagonals=False, include_centre=True
+        )
+    )
+    adj.sort()
+    assert adj == [
+        (Location(0, 0), "a"),
+        (Location(0, 1), "b"),
+        (Location(1, 0), "d"),
+    ]
+
+    adj = list(grid.adjacent(Location(0, 0), include_diagonals=True))
+    adj.sort()
+    assert adj == [
+        (Location(0, 1), "b"),
+        (Location(1, 0), "d"),
+        (Location(1, 1), "e"),
+    ]
+
+    adj = list(
+        grid.adjacent(
+            Location(0, 0), include_diagonals=True, include_centre=True
+        )
+    )
+    adj.sort()
+    assert adj == [
+        (Location(0, 0), "a"),
+        (Location(0, 1), "b"),
+        (Location(1, 0), "d"),
+        (Location(1, 1), "e"),
+    ]
+
+
+def test_Grid_cells():
+    grid = Grid.read(
+        io.StringIO("""a b c
+    d e f""")
+    )
+    cells = list(grid.cells())
+    assert cells == [
+        (Location(0, 0), "a"),
+        (Location(0, 1), "b"),
+        (Location(0, 2), "c"),
+        (Location(1, 0), "d"),
+        (Location(1, 1), "e"),
+        (Location(1, 2), "f"),
+    ]
 
 
 def test_ints():
@@ -59,6 +113,12 @@ def test_Location_iterable():
     assert next(i) == 1
     assert next(i) == 2
     assert isinstance(loc, Iterable)
+
+
+def test_Location_move():
+    loc = Location(1, 2)
+    d = Direction(3, 4)
+    assert loc.move(d) == Location(4, 6)
 
 
 def test_Location_sort():
