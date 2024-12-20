@@ -2,9 +2,10 @@
 
 import argparse
 import logging
-from logging import debug, info, warn
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pytest
 
 
 def solve(datafile):
@@ -31,12 +32,12 @@ def main(argv=sys.argv[1:]):
 
 def test_sample():
     datafile = Path(__file__).parent.parent.joinpath("sample.txt").open()
-    assert solve(datafile) == TODO
+    assert solve(datafile) == -1
 
-
-# def test_input():
-#     datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
-#     assert solve(datafile) == TODO
+@pytest.mark.xfail
+def test_input():
+    datafile = Path(__file__).parent.parent.joinpath("input.txt").open()
+    assert solve(datafile) == -1
 
 
 if __name__ == "__main__":
