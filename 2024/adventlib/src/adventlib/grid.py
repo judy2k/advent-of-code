@@ -11,7 +11,17 @@ __all__ = ["Grid", "Location", "Direction", "UP", "DOWN", "LEFT", "RIGHT"]
 T = TypeVar("T", default=str)
 
 
-def _identity(val):
+class OutOfBoundsError(Exception):
+    def __init__(self, row, col, grid):
+        super().__init__(
+            f"({row}, {col}) is outside the Grid bounds of ({grid.height}, {grid.width})"
+        )
+        self.row = row
+        self.col = col
+        self.grid = grid
+
+
+def _identity(val: T) -> T:
     """Identity function - returns the argument that was passed in, unchanged."""
     return val
 
@@ -186,3 +196,16 @@ class Grid[T]:
         if self.in_bounds(row, col):
             return self.rows[row][col]
         return None
+
+    def __setitem__(
+        self, loc: Location | tuple[int, int], value: T
+    ) -> T | None:
+        """Set a cell's contents at a specified location.
+
+        If the loc is outside of the Grid's width and height, an OutOfBoundsError will be raised."""
+
+        row, col = loc
+        if self.in_bounds(row, col):
+            self.rows[row][col] = value
+        else:
+            raise OutOfBoundsError(row, col, self)
