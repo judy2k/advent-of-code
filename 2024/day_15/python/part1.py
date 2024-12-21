@@ -34,30 +34,24 @@ class Map:
         for row in self.grid.rows:
             print("".join(row))
 
-    def _build_move(self, direction):
-        pos = self.robot_pos
-        boxes = []
-        while True:
-            pos = pos.move(direction)
-            match self.grid[pos]:
-                case ".":
-                    return boxes
-                case "#":
-                    return None
-                case "O":
-                    boxes.append(pos)
-                case None:
-                    raise Exception("Somehow ended up out of bounds!")
+    def move(self, pos: Location, direction: Direction):
+        dest = pos + direction
 
-    def move(self, direction: Direction):
-        boxes = self._build_move(direction)
-        if boxes is not None:
-            for box in reversed(boxes):
-                self.grid[box + direction] = "O"
-                self.grid[box] = "."
-            self.grid[self.robot_pos + direction] = "@"
-            self.grid[self.robot_pos] = "."
-            self.robot_pos += direction
+        if self.grid[dest] == "O":
+            self.move(dest, direction)
+
+        match self.grid[dest]:
+            case ".":
+                if self.grid[pos] == "@":
+                    self.robot_pos = dest
+                self.grid[dest] = self.grid[pos]
+                self.grid[pos] = "."
+            case "#":
+                return
+            case "O":
+                return
+            case None:
+                raise Exception("Somehow ended up out of bounds!")
 
 
 DIRECTIONS = {
@@ -78,7 +72,7 @@ def solve(datafile):
     map = Map(lines)
     for move in moves:
         print(f"Move: {REVERSE_DIRECTIONS[move]}")
-        map.move(move)
+        map.move(map.robot_pos, move)
     return sum(
         row * 100 + col for (row, col), val in map.grid.cells() if val == "O"
     )
