@@ -3,17 +3,18 @@ use std::{
     io::{self, BufRead},
 };
 
+use ReportResult::{FailAt, Pass};
+
 enum ReportResult {
     FailAt(usize),
     Pass,
 }
 
-use ReportResult::{FailAt, Pass};
 
 impl ReportResult {
     fn is_pass(self) -> bool {
         match self {
-            Self::Pass => true,
+            Pass => true,
             _ => false,
         }
     }
@@ -27,17 +28,27 @@ fn sign(i: i32) -> i32 {
     }
 }
 
-fn check_levels(ints: &[i32], up: i32) -> ReportResult {
+fn check_levels(ints: &[i32], up: i32, skip: Option<usize>) -> ReportResult {
     for i in 0..(ints.len() - 1) {
-        let diff = ints[i + 1] - ints[i];
+        if Some(i) != skip {
+            let diff = if Some(i + 1) == skip {
+                if i + 2 < ints.len() {
+                    ints[i + 2] - ints[i]
+                } else {
+                    continue;
+                }
+            } else {
+                ints[i + 1] - ints[i]
+            };
 
-        if sign(diff) != up {
-            return FailAt(i);
-        }
+            if sign(diff) != up {
+                return FailAt(i);
+            }
 
-        let abs_diff = diff.abs();
-        if abs_diff > 3 || abs_diff < 1 {
-            return FailAt(i);
+            let abs_diff = diff.abs();
+            if abs_diff > 3 || abs_diff < 1 {
+                return FailAt(i);
+            }
         }
     }
     return Pass;
@@ -45,13 +56,6 @@ fn check_levels(ints: &[i32], up: i32) -> ReportResult {
 
 fn direction(levels: &[i32]) -> i32 {
     sign((0..4).map(|i| sign(levels[i + 1] - levels[i])).sum())
-}
-
-fn skip_copy(input: &[i32], skip: usize) -> Vec<i32> {
-    let mut without_i = Vec::with_capacity(input.len() - 1);
-    without_i.extend(&input[..skip]);
-    without_i.extend(&input[skip + 1..]);
-    without_i
 }
 
 fn parse_levels(line: &str) -> Vec<i32> {
@@ -62,7 +66,7 @@ fn solve_part_1(lines: &Vec<String>) -> i32 {
     lines
         .into_iter()
         .map(|line| parse_levels(&line))
-        .map(|levels| check_levels(&levels, direction(&levels)).is_pass() as i32)
+        .map(|levels| check_levels(&levels, direction(&levels), None).is_pass() as i32)
         .sum()
 }
 
@@ -72,10 +76,10 @@ fn solve_part_2(lines: &Vec<String>) -> i32 {
         .map(|line| parse_levels(&line))
         .map(|levels| {
             let direction = direction(&levels);
-            match check_levels(&levels, direction) {
+            match check_levels(&levels, direction, None) {
                 Pass => 1,
-                FailAt(i) if check_levels(&skip_copy(&levels, i), direction).is_pass() => 1,
-                FailAt(i) if check_levels(&skip_copy(&levels, i + 1), direction).is_pass() => 1,
+                FailAt(i) if check_levels(&levels, direction, Some(i)).is_pass() => 1,
+                FailAt(i) if check_levels(&levels, direction, Some(i + 1)).is_pass() => 1,
                 _ => 0,
             }
         })
