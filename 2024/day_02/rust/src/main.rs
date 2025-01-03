@@ -8,6 +8,17 @@ enum ReportResult {
     Pass,
 }
 
+use ReportResult::{FailAt, Pass};
+
+impl ReportResult {
+    fn is_pass(self) -> bool {
+        match self {
+            Self::Pass => true,
+            _ => false,
+        }
+    }
+}
+
 fn sign(i: i32) -> i32 {
     if i == 0 {
         0
@@ -17,52 +28,23 @@ fn sign(i: i32) -> i32 {
 }
 
 fn check_levels(ints: &[i32], up: i32) -> ReportResult {
-    // println!("Checking Levels: {:?}", ints);
     for i in 0..(ints.len() - 1) {
-        let a = ints[i];
-        let b = ints[i + 1];
+        let diff = ints[i + 1] - ints[i];
 
-        // println!("{} == {}?", dir(a, b), up);
-        if sign(b - a) != up {
-            return ReportResult::FailAt(i);
+        if sign(diff) != up {
+            return FailAt(i);
         }
 
-        let diff = (b - a).abs();
-        if diff > 3 || diff < 1 {
-            // println!("Failing at {i}");
-            return ReportResult::FailAt(i);
+        let abs_diff = diff.abs();
+        if abs_diff > 3 || abs_diff < 1 {
+            return FailAt(i);
         }
     }
-    return ReportResult::Pass;
-}
-
-fn solve_part_1(lines: &Vec<String>) -> i32 {
-    let mut tally = 0;
-
-    for line in lines {
-        let levels: Vec<i32> = line.trim().split(" ").map(|t| t.parse().unwrap()).collect();
-        if let ReportResult::Pass = check_levels(&levels, direction(&levels)) {
-            tally += 1;
-        }
-    }
-
-    tally
+    return Pass;
 }
 
 fn direction(levels: &[i32]) -> i32 {
-    let mut tally = 0;
-    for i in 0..4 {
-        let diff = levels[i + 1] - levels[i];
-        if diff != 0 {
-            tally += diff / diff.abs();
-        }
-    }
-
-    if tally == 0 {
-        0
-    } else {
-        tally / tally.abs()
-    }
+    sign((0..4).map(|i| sign(levels[i + 1] - levels[i])).sum())
 }
 
 fn skip_copy(input: &[i32], skip: usize) -> Vec<i32> {
@@ -72,27 +54,32 @@ fn skip_copy(input: &[i32], skip: usize) -> Vec<i32> {
     without_i
 }
 
+fn parse_levels(line: &str) -> Vec<i32> {
+    line.trim().split(" ").map(|t| t.parse().unwrap()).collect()
+}
+
+fn solve_part_1(lines: &Vec<String>) -> i32 {
+    lines
+        .into_iter()
+        .map(|line| parse_levels(&line))
+        .map(|levels| check_levels(&levels, direction(&levels)).is_pass() as i32)
+        .sum()
+}
+
 fn solve_part_2(lines: &Vec<String>) -> i32 {
-    let mut tally = 0;
-
-    for line in lines {
-        let levels: Vec<i32> = line.trim().split(" ").map(|t| t.parse().unwrap()).collect();
-        let direction = direction(&levels);
-        match check_levels(&levels, direction) {
-            ReportResult::Pass => tally += 1,
-            ReportResult::FailAt(i) => {
-                if let ReportResult::Pass = check_levels(&skip_copy(&levels, i), direction) {
-                    tally += 1
-                } else if let ReportResult::Pass =
-                    check_levels(&skip_copy(&levels, i + 1), direction)
-                {
-                    tally += 1
-                }
+    lines
+        .into_iter()
+        .map(|line| parse_levels(&line))
+        .map(|levels| {
+            let direction = direction(&levels);
+            match check_levels(&levels, direction) {
+                Pass => 1,
+                FailAt(i) if check_levels(&skip_copy(&levels, i), direction).is_pass() => 1,
+                FailAt(i) if check_levels(&skip_copy(&levels, i + 1), direction).is_pass() => 1,
+                _ => 0,
             }
-        }
-    }
-
-    tally
+        })
+        .sum()
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
