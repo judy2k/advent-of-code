@@ -24,11 +24,34 @@ fn solve_part1(input: &str) -> Result<i32, Box<dyn Error>> {
     }).sum())
 }
 
+fn solve_part2(input: &str) -> Result<i32, Box<dyn Error>> {
+    let pattern = Regex::new(r"(mul)\((-?\d+),(-?\d+)\)|(do)\(\)|(don't)\(\)")?;
+
+    let mut capturing = true;
+    let mut tally = 0;
+    for m in pattern.captures_iter(input) {
+        let funcname = m.get(1).or_else(|| m.get(4).or_else(||m.get(5))).unwrap().as_str();
+
+        match funcname {
+            "mul" if capturing => {
+                let op1: i32 = m.get(2).unwrap().as_str().parse()?;
+                let op2: i32 = m.get(3).unwrap().as_str().parse()?;
+                tally += op1 * op2;
+            },
+            "do" => capturing = true,
+            "don't" => capturing = false,
+            _ => {},
+        }
+    }
+
+    Ok(tally)
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let input = read_stdin()?;
 
     println!("Part 1: {}", solve_part1(&input)?);
-    // println!("Part 2: {}", solve_part2(&input)?);
+    println!("Part 2: {}", solve_part2(&input)?);
 
     Ok(())
 }
