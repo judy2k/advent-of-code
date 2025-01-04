@@ -10,21 +10,12 @@ enum ReportResult {
     Pass,
 }
 
-
 impl ReportResult {
     fn is_pass(self) -> bool {
         match self {
             Pass => true,
             _ => false,
         }
-    }
-}
-
-fn sign(i: i32) -> i32 {
-    if i == 0 {
-        0
-    } else {
-        i / i.abs()
     }
 }
 
@@ -41,7 +32,7 @@ fn check_levels(ints: &[i32], up: i32, skip: Option<usize>) -> ReportResult {
                 ints[i + 1] - ints[i]
             };
 
-            if sign(diff) != up {
+            if diff.signum() != up {
                 return FailAt(i);
             }
 
@@ -55,7 +46,10 @@ fn check_levels(ints: &[i32], up: i32, skip: Option<usize>) -> ReportResult {
 }
 
 fn direction(levels: &[i32]) -> i32 {
-    sign((0..4).map(|i| sign(levels[i + 1] - levels[i])).sum())
+    ((0..4)
+        .map(|i| (levels[i + 1] - levels[i]).signum())
+        .sum::<i32>())
+    .signum()
 }
 
 fn parse_levels(line: &str) -> Vec<i32> {
