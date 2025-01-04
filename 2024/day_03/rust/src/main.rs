@@ -15,16 +15,13 @@ fn read_stdin() -> io::Result<String> {
 fn solve_part1(input: &str) -> Result<i32, Box<dyn Error>> {
     let pattern = Regex::new(r"(mul)\((-?\d+),(-?\d+)\)")?;
 
-    let mut total = 0;
-    for m in pattern.captures_iter(input) {
+    Ok(pattern.captures_iter(input).map(|m| {
         let (_, [_funcname, op1, op2]) = m.extract();
-        let op1: i32 = op1.parse()?;
-        let op2: i32 = op2.parse()?;
+        let op1: i32 = op1.parse().unwrap();
+        let op2: i32 = op2.parse().unwrap();
 
-        total += op1 * op2;
-    }
-
-    Ok(total)
+        op1 * op2
+    }).sum())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
