@@ -15,36 +15,42 @@ fn read_stdin() -> io::Result<String> {
 fn solve_part1(input: &str) -> Result<i32, Box<dyn Error>> {
     let pattern = Regex::new(r"(mul)\((-?\d+),(-?\d+)\)")?;
 
-    Ok(pattern.captures_iter(input).map(|m| {
-        let (_, [_funcname, op1, op2]) = m.extract();
-        let op1: i32 = op1.parse().unwrap();
-        let op2: i32 = op2.parse().unwrap();
+    Ok(pattern
+        .captures_iter(input)
+        .map(|m| {
+            let (_, [_funcname, op1, op2]) = m.extract();
+            let op1: i32 = op1.parse().unwrap();
+            let op2: i32 = op2.parse().unwrap();
 
-        op1 * op2
-    }).sum())
+            op1 * op2
+        })
+        .sum())
 }
 
 fn solve_part2(input: &str) -> Result<i32, Box<dyn Error>> {
-    let pattern = Regex::new(r"(mul)\((-?\d+),(-?\d+)\)|(do)\(\)|(don't)\(\)")?;
+    let pattern = Regex::new(r"(mul)\((-?\d+),(-?\d+)\)|(do)\(\)|(don't)\(\)").unwrap();
+    Ok(pattern
+        .captures_iter(input)
+        .fold((true, 0), |(capturing, tally), m| {
+            // 👇🏼 This is _really_ horrible!
+            let funcname = m
+                .get(1)
+                .or_else(|| m.get(4).or_else(|| m.get(5)))
+                .unwrap()
+                .as_str();
 
-    let mut capturing = true;
-    let mut tally = 0;
-    for m in pattern.captures_iter(input) {
-        let funcname = m.get(1).or_else(|| m.get(4).or_else(||m.get(5))).unwrap().as_str();
-
-        match funcname {
-            "mul" if capturing => {
-                let op1: i32 = m.get(2).unwrap().as_str().parse()?;
-                let op2: i32 = m.get(3).unwrap().as_str().parse()?;
-                tally += op1 * op2;
-            },
-            "do" => capturing = true,
-            "don't" => capturing = false,
-            _ => {},
-        }
-    }
-
-    Ok(tally)
+            match funcname {
+                "mul" if capturing => {
+                    let op1: i32 = m.get(2).unwrap().as_str().parse().unwrap();
+                    let op2: i32 = m.get(3).unwrap().as_str().parse().unwrap();
+                    (true, tally + op1 * op2)
+                }
+                "do" if !capturing => (true, tally),
+                "don't" if capturing => (false, tally),
+                _ => (capturing, tally),
+            }
+        })
+        .1)
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
