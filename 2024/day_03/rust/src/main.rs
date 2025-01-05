@@ -28,23 +28,25 @@ fn solve_part1(input: &str) -> Result<i32, Box<dyn Error>> {
 }
 
 fn solve_part2(input: &str) -> Result<i32, Box<dyn Error>> {
-    let pattern = Regex::new(r"(mul)\((-?\d+),(-?\d+)\)|(do)\(\)|(don't)\(\)").unwrap();
+    // The following regex has 3 options, each resulting in 3 captures
+    // (even though with do and don't only the first capture will be non-empty.)
+    let pattern = Regex::new(
+        r#"(?x)    # Verbose regex
+            (mul)\((-?\d+),(-?\d+)\)
+            |(do)\(()()\)
+            |(don't)\(()()\)"#,
+    )
+    .unwrap();
     Ok(pattern
         .captures_iter(input)
         .fold((true, 0), |(capturing, tally), m| {
-            // 👇🏼 This is _really_ horrible!
-            let funcname = m
-                .get(1)
-                .or_else(|| m.get(4).or_else(|| m.get(5)))
-                .unwrap()
-                .as_str();
+            let (_, [funcname, op1, op2]) = m.extract();
 
             match funcname {
-                "mul" if capturing => {
-                    let op1: i32 = m.get(2).unwrap().as_str().parse().unwrap();
-                    let op2: i32 = m.get(3).unwrap().as_str().parse().unwrap();
-                    (true, tally + op1 * op2)
-                }
+                "mul" if capturing => (
+                    true,
+                    tally + op1.parse::<i32>().unwrap() * op2.parse::<i32>().unwrap(),
+                ),
                 "do" if !capturing => (true, tally),
                 "don't" if capturing => (false, tally),
                 _ => (capturing, tally),
