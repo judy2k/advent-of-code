@@ -33,6 +33,16 @@ impl Grid {
         self.lines.get(row).and_then(|line| line.get(col)).copied()
     }
 
+    fn loc_iter(&self) -> LocIter {
+        LocIter { grid: &self, i: 0 }
+    }
+
+    fn iter(&self) -> GridIter {
+        GridIter {
+            loc_iter: self.loc_iter(),
+        }
+    }
+
     fn test_xmas_1(&self, start_row: usize, start_col: usize, f: fn(i32) -> (i32, i32)) -> bool {
         let xmas = vec!['X', 'M', 'A', 'S'];
         for i in 0..4 {
@@ -73,54 +83,87 @@ impl Grid {
     }
 }
 
+struct LocIter<'t> {
+    grid: &'t Grid,
+    i: usize,
+}
+
+impl<'t> Iterator for LocIter<'t> {
+    type Item = (usize, usize);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = if self.i < self.grid.width * self.grid.height {
+            Some((self.i / self.grid.width, self.i % self.grid.width))
+        } else {
+            None
+        };
+
+        self.i += 1;
+
+        result
+    }
+}
+
+struct GridIter<'t> {
+    loc_iter: LocIter<'t>,
+}
+
+impl<'t> Iterator for GridIter<'t> {
+    type Item = (usize, usize, char);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.loc_iter
+            .next()
+            .map(|(row, col)| (row, col, self.loc_iter.grid.get(row, col).unwrap()))
+    }
+}
+
 fn solve_part1(grid: &Grid) -> Result<i32, Box<dyn Error>> {
     let mut tally = 0;
-    for row in 0..grid.width {
-        for col in 0..grid.height {
-            if grid.get(row, col) == Some('X') {
-                // Try up:
-                if row >= 3 {
-                    if grid.test_xmas_1(row, col, |i| (-i, 0)) {
-                        tally += 1
-                    }
-
-                    // Up left:
-                    if col >= 3 && grid.test_xmas_1(row, col, |i| (-i, -i)) {
-                        tally += 1
-                    }
-
-                    // Up right:
-                    if col < grid.width - 3 && grid.test_xmas_1(row, col, |i| (-i, i)) {
-                        tally += 1
-                    }
-                }
-
-                // Try down:
-                if row < grid.height - 3 {
-                    if grid.test_xmas_1(row, col, |i| (i, 0)) {
-                        tally += 1
-                    }
-
-                    // Down left:
-                    if col >= 3 && grid.test_xmas_1(row, col, |i| (i, -i)) {
-                        tally += 1
-                    }
-
-                    // Down right:
-                    if col < grid.width - 3 && grid.test_xmas_1(row, col, |i| (i, i)) {
-                        tally += 1
-                    }
-                }
-
-                // Try left:
-                if col >= 3 && grid.test_xmas_1(row, col, |i| (0, -i)) {
+    for (row, col, c) in grid.iter() {
+        if c == 'X' {
+            // Try up:
+            if row >= 3 {
+                if grid.test_xmas_1(row, col, |i| (-i, 0)) {
                     tally += 1
                 }
 
-                // Try right:
-                if col < grid.width - 3 && grid.test_xmas_1(row, col, |i| (0, i)) {
+                // Up left:
+                if col >= 3 && grid.test_xmas_1(row, col, |i| (-i, -i)) {
                     tally += 1
                 }
+
+                // Up right:
+                if col < grid.width - 3 && grid.test_xmas_1(row, col, |i| (-i, i)) {
+                    tally += 1
+                }
+            }
+
+            // Try down:
+            if row < grid.height - 3 {
+                if grid.test_xmas_1(row, col, |i| (i, 0)) {
+                    tally += 1
+                }
+
+                // Down left:
+                if col >= 3 && grid.test_xmas_1(row, col, |i| (i, -i)) {
+                    tally += 1
+                }
+
+                // Down right:
+                if col < grid.width - 3 && grid.test_xmas_1(row, col, |i| (i, i)) {
+                    tally += 1
+                }
+            }
+
+            // Try left:
+            if col >= 3 && grid.test_xmas_1(row, col, |i| (0, -i)) {
+                tally += 1
+            }
+
+            // Try right:
+            if col < grid.width - 3 && grid.test_xmas_1(row, col, |i| (0, i)) {
+                tally += 1
             }
         }
     }
