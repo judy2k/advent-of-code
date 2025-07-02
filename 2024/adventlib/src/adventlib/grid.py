@@ -64,6 +64,18 @@ class Location(Iterable):
             if include_centre:
                 yield self
 
+    def left(self) -> "Location":
+        return Location(self.row, self.col - 1)
+
+    def right(self) -> "Location":
+        return Location(self.row, self.col + 1)
+
+    def up(self) -> "Location":
+        return Location(self.row - 1, self.col)
+
+    def down(self) -> "Location":
+        return Location(self.row + 1, self.col)
+
     def __add__(self, direction: "Direction") -> "Location":
         """Locations can be added to a provided Direction to obtain a new Location."""
         return Location(self.row + direction.row, self.col + direction.col)
@@ -82,6 +94,14 @@ class Location(Iterable):
             return True
         elif self.row == other.row:
             return self.col < other.col
+
+    def __hash__(self) -> int:
+        return hash((self.row, self.col))
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Location):
+            return False
+        return self.row == other.row and self.col == other.col
 
 
 class Direction(NamedTuple):
@@ -102,6 +122,18 @@ class Direction(NamedTuple):
     def anticlockwise(self) -> "Direction":
         """Return the Direction 90° anticlockwise to this one."""
         return Direction(-1 * self.col, self.row)
+
+    def vertical(self) -> bool:
+        return self.col == 0
+
+    def horizontal(self) -> bool:
+        return self.row == 0
+
+    def __mul__(self, num: int):
+        return Direction(self.row * num, self.col * num)
+
+    def __add__(self, other: "Direction"):
+        return Direction(self.row + other.row, self.col + other.row)
 
     def __eq__(self, other):
         """Allow two Directions to be tested for equality."""
