@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "adventlib"
+version = "0.1.0"
+description = "Utilities for solving Advent of Code problems."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "mypy",
+  "coverage",
+  "interrogate"
+]
